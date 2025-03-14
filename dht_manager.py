@@ -14,12 +14,13 @@ from enum import Enum
 import ipaddress
 
 
+# ============== CLIENT STATE ENUM =============== #
 class client_state(Enum):
     FREE = 1
     LEADER = 2
     INDHT = 3
 
-
+# ============== DHT COMMAND: register =============== #
 def register_client(client_message):
     if not check_register_command(client_message):
         print("FAILURE")
@@ -32,7 +33,7 @@ def register_client(client_message):
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), clientAddress)
 
-
+# ============== FUNCTION: VALIDATE REGISTRATION COMMAND FORMAT =============== #
 def check_register_command(client_message):
     # See if 4 arguments total in register command (register +  4 args)
     command = client_message.split(" ")
@@ -65,7 +66,7 @@ def check_register_command(client_message):
 
     return True
 
-
+# ============== FUNCTION: VALIDATE IP ADDRESS =============== #
 def IP_address_valid(entered_IP_address):
     try:
         ipaddress.ip_address(entered_IP_address)
@@ -74,42 +75,41 @@ def IP_address_valid(entered_IP_address):
         return False
 
 
-# Checking if exactly 2 arguments are provided
-if len(sys.argv) !=2:
-    print("Incorrect Command!")
-    print("Usage: python3 dht_manager.py <port>")
-    sys.exit(1)
+# ============== MAIN =============== #
+def main():
+    if len(sys.argv) != 2:
+        print("Incorrect Command!")
+        print("Usage: python3 dht_manager.py <port>")
+        sys.exit(1)
 
-# The server port will be queried
-try:
     serverPort = (int(sys.argv[1]))
-except ValueError:
-    print("You need to specify an integer for your port address")
-    sys.exit(1)
+    
+    if serverPort <= 1024 or serverPort > 65535:
+        print("Please specify a port address within appropriate bounds")
+        sys.exit(1)
 
-if serverPort <= 1024 or serverPort > 65535:
-    print("Please specify a port address within appropriate bounds")
-    sys.exit(1)
+    # I will create a UDP socket and bind the IP address and port address together
+    serverSocket = socket(AF_INET, SOCK_DGRAM)
+    serverSocket.bind(('', serverPort))
 
-# I will create a UDP socket and bind the IP address and port address together
-serverSocket = socket(AF_INET, SOCK_DGRAM)
-serverSocket.bind(('', serverPort))
+    client_dictionary = {}
 
-client_dictionary = {}
+    # The server's terminal will print that it is now listening
+    print("The server is listening on port ", serverPort)
 
-# The server's terminal will print that it is now listening
-print("The server is listening on port ", serverPort)
+    try:
+        while True:
+            # Accept any connections, and send over the server's welcome message to the client
+            message, clientAddress = serverSocket.recvfrom(1024)
+            message = message.decode()
 
-try:
-    while True:
-        # Accept any connections, and send over the server's welcome message to the client
-        message, clientAddress = serverSocket.recvfrom(1024)
-        message = message.decode()
+            if "register" in message:
+                register_client(message)
 
-        if "register" in message:
-            register_client(message)
+    except KeyboardInterrupt:
+        print("The process has been terminated")
 
-except KeyboardInterrupt:
-    print("The process has been terminated")
+    serverSocket.close()
 
-serverSocket.close()
+if __name__ == "__main__":
+    main()
