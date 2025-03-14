@@ -21,19 +21,32 @@ Link to Design Doc: [CSE434: Socket Project](https://docs.google.com/document/d/
 
 ![Architecture](architecture.png)
 
-## Run the environment:
+## Setting up the python environment:
+
+```
+cd dht-application
+python -m venv venv # create virtual enviroment
+source venv/bin/activate # mac
+venv\Scripts\activate # window
+pip install -r requirements.txt # install dependecies
+pip list # check if all dependecies are properly installed
+```
+
+## Run the program
 
 ### DHT Manager
 
 ```
-python3
+# Usage: python3 dht_manager.py <port>
+python3 dht_manager.py 12345
 
 ```
 
 ### Peers
 
 ```
-python3
+# Usage: python3 dht_peer.py <manager_ip> <manager_port>
+python3 dht_peer.py localhost 12345
 
 ```
 
