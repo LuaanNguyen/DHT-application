@@ -70,11 +70,9 @@ def main():
                 logger.info(f"Received response from manager: {receivedMessage}")
             except Exception as e:
                 logger.error(f"Communication error: {str(e)}")
-                print("Error communicating with manager")
                 
     except KeyboardInterrupt:
         logger.info("Peer terminated by user")
-        print(f"The client terminated")
         
     clientSocket.close()
     logger.info("Connection closed")
