@@ -85,11 +85,11 @@ def main():
     serverPort = (int(sys.argv[1]))
     
     if serverPort <= 1024 or serverPort > 65535:
-        print("Please specify a port address within appropriate bounds")
+        print("Please specify a port address within appropriate bounds (1024 - 65535)")
         sys.exit(1)
 
     # I will create a UDP socket and bind the IP address and port address together
-    serverSocket = socket(AF_INET, SOCK_DGRAM)
+    serverSocket = socket(AF_INET, SOCK_DGRAM) # IPv4, UDP
     serverSocket.bind(('', serverPort))
 
     client_dictionary = {}
