@@ -105,10 +105,16 @@ def main():
 
             if "register" in message:
                 register_client(message)
+            elif "setup-dht" in message:
+                pass
+                # TODO: setup-dht ⟨peer-name⟩
+            elif "dht-complete" in message:
+                pass
+                # TODO: dht-complete ⟨peer-name⟩
+                
 
     except KeyboardInterrupt:
-        print("The process has been terminated")
-
+        print("The DHT Manager terminated.")
     serverSocket.close()
 
 if __name__ == "__main__":

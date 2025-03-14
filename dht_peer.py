@@ -23,23 +23,26 @@ def main():
     serverPort = int(sys.argv[2])
 
     # create a UDP client socket, and connect to the server via its IP address and port address
-    clientSocket = socket(AF_INET, SOCK_DGRAM)
+    clientSocket = socket(AF_INET, SOCK_DGRAM) # IPv4, UDP
     clientSocket.connect((serverName, serverPort))
 
-    while True:
-        # query the client to send in an input message and send it
-        message = input("Type in a message (type exit to terminate the connection):")
-        clientSocket.send(message.encode())
+    try: 
+        while True:
+            # query the client to send in an input message and send it
+            message = input("Type in a message (type exit to terminate the connection):")
+            clientSocket.send(message.encode())
 
-        # if the message is exit, exit the loop
-        if message == "exit":
-            break
+            # if the message is exit, exit the loop
+            if message == "exit":
+                break
 
-        # otherwise, print the message that the server echoed back
-        receivedMessage = clientSocket.recv(2048).decode()
-        print(receivedMessage)
-
-    print("Now exiting the program...")
+            # otherwise, print the message that the server echoed back
+            receivedMessage = clientSocket.recv(2048).decode()
+            print(receivedMessage)
+    except KeyboardInterrupt:
+        print(f"The client terminated")
+        
+    clientSocket.close()
 
 if __name__ == "__main__":
     main()
