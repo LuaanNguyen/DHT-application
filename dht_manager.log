@@ -1,0 +1,26 @@
+2025-03-14 21:30:14,793 - INFO - Server started on port 12345
+2025-03-14 21:30:14,793 - INFO - Server listening on port 12345
+2025-03-14 21:30:19,099 - INFO - Received message from ('127.0.0.1', 49698): [A[B
+2025-03-14 21:30:31,125 - INFO - Received message from ('127.0.0.1', 63308): hello
+2025-03-14 21:30:48,060 - INFO - Received message from ('127.0.0.1', 64518): Bancho
+2025-03-14 21:30:57,742 - INFO - Server shutting down
+2025-03-14 21:33:28,284 - INFO - Server started on port 12345
+2025-03-14 21:33:28,284 - INFO - Server listening on port 12345
+2025-03-14 21:33:34,551 - INFO - Received message from ('127.0.0.1', 53486): hello
+2025-03-14 21:34:35,872 - INFO - Server started on port 12345
+2025-03-14 21:34:35,872 - INFO - Server listening on port 12345
+2025-03-14 21:34:42,469 - INFO - Received message from ('127.0.0.1', 62498): hello
+2025-03-14 21:35:39,869 - INFO - Server shutting down
+2025-03-14 21:35:53,752 - INFO - Server started on port 12345
+2025-03-14 21:35:56,069 - INFO - Received message from ('127.0.0.1', 51345): hello
+2025-03-14 21:35:56,069 - WARNING - Unknown command received from ('127.0.0.1', 51345)
+2025-03-14 21:37:11,589 - INFO - Received message from ('127.0.0.1', 61313): hello
+2025-03-14 21:37:11,590 - WARNING - Unknown command received from ('127.0.0.1', 61313)
+2025-03-14 21:37:36,189 - INFO - Server shutting down
+2025-03-14 21:37:36,190 - INFO - Server socket closed
+2025-03-14 21:38:39,948 - INFO - Server started on port 12345
+2025-03-14 21:38:42,757 - INFO - Server shutting down
+2025-03-14 21:38:42,757 - INFO - Server socket closed
+2025-03-14 21:45:42,574 - INFO - Server started on port 12345
+2025-03-14 21:45:48,796 - INFO - Received message from ('127.0.0.1', 61652): Hello
+2025-03-14 21:45:48,797 - WARNING - Unknown command received from ('127.0.0.1', 61652)

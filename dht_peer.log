@@ -1,0 +1,40 @@
+2025-03-14 21:29:19,195 - INFO - Connected to manager at localhost:12345
+2025-03-14 21:29:26,552 - INFO - Sent message to manager: hello
+2025-03-14 21:29:26,553 - ERROR - Communication error: [Errno 61] Connection refused
+2025-03-14 21:30:04,395 - INFO - Sent message to manager: hello
+2025-03-14 21:30:04,396 - ERROR - Communication error: [Errno 61] Connection refused
+2025-03-14 21:30:19,097 - INFO - Sent message to manager: [A[B
+2025-03-14 21:30:28,477 - INFO - Peer terminated by user
+2025-03-14 21:30:28,477 - INFO - Connection closed
+2025-03-14 21:30:29,554 - INFO - Connected to manager at localhost:12345
+2025-03-14 21:30:31,125 - INFO - Sent message to manager: hello
+2025-03-14 21:30:43,143 - INFO - Peer terminated by user
+2025-03-14 21:30:43,143 - INFO - Connection closed
+2025-03-14 21:30:44,690 - INFO - Connected to manager at localhost:12345
+2025-03-14 21:30:48,059 - INFO - Sent message to manager: Bancho
+2025-03-14 21:30:59,130 - INFO - Peer terminated by user
+2025-03-14 21:30:59,131 - INFO - Connection closed
+2025-03-14 21:33:31,319 - INFO - Connected to manager at localhost:12345
+2025-03-14 21:33:34,550 - INFO - Sent message to manager: hello
+2025-03-14 21:34:39,402 - INFO - Peer terminated by user
+2025-03-14 21:34:39,403 - INFO - Connection closed
+2025-03-14 21:34:40,947 - INFO - Connected to manager at localhost:12345
+2025-03-14 21:34:42,468 - INFO - Sent message to manager: hello
+2025-03-14 21:35:40,711 - INFO - Peer terminated by user
+2025-03-14 21:35:40,711 - INFO - Connection closed
+2025-03-14 21:35:46,919 - INFO - Connected to manager at localhost:12345
+2025-03-14 21:35:48,966 - INFO - Connected to manager at localhost:12345
+2025-03-14 21:35:51,601 - INFO - Peer terminated by user
+2025-03-14 21:35:51,602 - INFO - Connection closed
+2025-03-14 21:35:56,068 - INFO - Sent message to manager: hello
+2025-03-14 21:35:56,069 - INFO - Received response from manager: Unknown command
+2025-03-14 21:37:09,543 - INFO - Connected to manager at localhost:12345
+2025-03-14 21:37:11,589 - INFO - Sent message to manager: hello
+2025-03-14 21:37:11,590 - INFO - Received response from manager: Unknown command
+2025-03-14 21:37:22,592 - INFO - Peer terminated by user
+2025-03-14 21:37:22,592 - INFO - Connection closed
+2025-03-14 21:37:24,352 - INFO - User requested exit
+2025-03-14 21:37:24,394 - INFO - Connection closed
+2025-03-14 21:45:45,246 - INFO - Connected to manager at localhost:12345
+2025-03-14 21:45:48,796 - INFO - Sent message to manager: Hello
+2025-03-14 21:45:48,797 - INFO - Received response from manager: Unknown command
