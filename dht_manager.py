@@ -32,7 +32,7 @@ class client_state(Enum):
     INDHT = 3
 
 # ============== DHT COMMAND: register =============== #
-def register_client(client_message):
+def register_client(client_message, clientAddress):
     if not check_register_command(client_message):
         logger.error("Registration failed: Invalid command format")  
         return
@@ -95,50 +95,56 @@ def IP_address_valid(entered_IP_address):
 # ============== MAIN =============== #
 def main():
     if len(sys.argv) != 2:
-        logger.error("Incorrect number of command line arguments")  
+        logger.error("Incorrect number of command line arguments")
         print("Usage: python3 dht_manager.py <port>")
         sys.exit(1)
 
     try:
-        serverPort = (int(sys.argv[1]))
-    except ValueError:
-        logger.error("Invalid port number format")  
+        serverPort = int(sys.argv[1])
+        if serverPort <= 1024 or serverPort > 65535:
+            raise ValueError("Port out of range")
+    except ValueError as e:
+        logger.error(f"Port error: {str(e)}")
         sys.exit(1)
 
-    if serverPort <= 1024 or serverPort > 65535:
-        logger.error(f"Port number out of range: {serverPort}. Please specify a port address within appropriate bounds (1024 - 65535)")  
-        sys.exit(1)
-
-    # I will create a UDP socket and bind the IP address and port address together
-    serverSocket = socket(AF_INET, SOCK_DGRAM) # IPv4, UDP
+    # Create UDP socket
+    global serverSocket
+    serverSocket = socket(AF_INET, SOCK_DGRAM)
     serverSocket.bind(('', serverPort))
-    logger.info(f"Server started on port {serverPort}") 
+    print("===== TO EXIT THE PROGRAM, SIMPLY DO CRTL + C =====")
+    logger.info(f"Server started on port {serverPort}")
 
+    # Initialize client dictionary
+    global client_dictionary
     client_dictionary = {}
-
-    # The server's terminal will print that it is now listening
-    logger.info(f"Server listening on port {serverPort}")  
 
     try:
         while True:
-            # Accept any connections, and send over the server's welcome message to the client
+            # Wait for messages from clients
             message, clientAddress = serverSocket.recvfrom(1024)
             message = message.decode()
-            logger.info(f"Received message from {clientAddress}: {message}") 
+            logger.info(f"Received message from {clientAddress}: {message}")
 
+            # Handle different commands
             if "register" in message:
-                register_client(message)
+                register_client(message, clientAddress)
             elif "setup-dht" in message:
+                # TODO: Implement setup-dht
                 pass
-                # TODO: setup-dht ⟨peer-name⟩
             elif "dht-complete" in message:
+                # TODO: Implement dht-complete
                 pass
-                # TODO: dht-complete ⟨peer-name⟩
-                
+            else:
+                # Send error response back to client
+                error_msg = "Unknown command"
+                serverSocket.sendto(error_msg.encode(), clientAddress)
+                logger.warning(f"Unknown command received from {clientAddress}")
 
     except KeyboardInterrupt:
         logger.info("Server shutting down")
-    serverSocket.close()
+    finally:
+        serverSocket.close()
+        logger.info("Server socket closed")
 
 if __name__ == "__main__":
     main()
