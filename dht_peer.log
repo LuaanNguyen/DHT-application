@@ -35,3 +35,6 @@
 2025-03-14 21:37:22,592 - INFO - Connection closed
 2025-03-14 21:37:24,352 - INFO - User requested exit
 2025-03-14 21:37:24,394 - INFO - Connection closed
+2025-03-14 21:45:45,246 - INFO - Connected to manager at localhost:12345
+2025-03-14 21:45:48,796 - INFO - Sent message to manager: Hello
+2025-03-14 21:45:48,797 - INFO - Received response from manager: Unknown command

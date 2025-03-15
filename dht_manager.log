@@ -21,3 +21,6 @@
 2025-03-14 21:38:39,948 - INFO - Server started on port 12345
 2025-03-14 21:38:42,757 - INFO - Server shutting down
 2025-03-14 21:38:42,757 - INFO - Server socket closed
+2025-03-14 21:45:42,574 - INFO - Server started on port 12345
+2025-03-14 21:45:48,796 - INFO - Received message from ('127.0.0.1', 61652): Hello
+2025-03-14 21:45:48,797 - WARNING - Unknown command received from ('127.0.0.1', 61652)
