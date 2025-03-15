@@ -14,6 +14,11 @@ from enum import Enum
 import ipaddress
 import logging  
 
+# ============== GLOBAL VARIABLES =============== #
+client_dictionary = {}  # Global dictionary to store client information
+serverSocket = None    # Global socket variable
+
+
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
     level=logging.INFO,  # Set logging level
@@ -39,9 +44,11 @@ def register_client(client_message, clientAddress):
 
     command = client_message.split(" ")
     # after error checking, I can add the registered client in the dictionary
-    client_dictionary[command[1]] = {command[2], command[3], command[4], client_state.FREE}
     logger.info(f"Successfully registered client: {command[1]}") 
+    
+    client_dictionary[command[1]] = {command[2], command[3], command[4], client_state.FREE}
     client_response = "SUCCESS"
+    
     serverSocket.sendto(client_response.encode(), clientAddress)
 
 # ============== FUNCTION: VALIDATE REGISTRATION COMMAND FORMAT =============== #
@@ -113,10 +120,6 @@ def main():
     serverSocket.bind(('', serverPort))
     print("===== TO EXIT THE PROGRAM, SIMPLY DO CRTL + C =====")
     logger.info(f"Server started on port {serverPort}")
-
-    # Initialize client dictionary
-    global client_dictionary
-    client_dictionary = {}
 
     try:
         while True:
