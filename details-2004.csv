@@ -1,4 +1,4 @@
 event_id,state,year,month_name,event_type,cz_type,cz_name,injuries_direct,injuries_indirect,deaths_direct,deaths_indirect,damage_property,damage_crops,tor_f_scale
-20000,WASHINGTON,2004,June,Z,C,CLARK,8,11,10.00K,5.00K,EP0
-20001,WASHINGTON,2004,August,M,C,FERRY,3,10,20.00K,15.00K,EP1
-20002,WASHINGTON,2004,DECEMBER,C,C,FRANKLIN,5,7,11.00K,3.00K,EP2
+20000,WASHINGTON,2004,June,Z,C,CLARK,2,10,8,11,10.00K,5.00K,EP0
+20001,WASHINGTON,2004,August,M,C,FERRY,5,7,3,10,20.00K,15.00K,EP1
+20002,WASHINGTON,2004,December,C,C,FRANKLIN,3,11,5,7,11.00K,3.00K,EP2
