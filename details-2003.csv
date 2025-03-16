@@ -1,0 +1,4 @@
+event_id,state,year,month_name,event_type,cz_type,cz_name,injuries_direct,injuries_indirect,deaths_direct,deaths_indirect,damage_property,damage_crops,tor_f_scale
+30000,VIRGINIA,2003,May,Z,C,RICHMOND,5,10,8,11,10.00K,5.00K,EP0
+30001,VIRGINIA,2003,August,M,C,ARLINGTON,10,5,3,10,20.00K,15.00K,EP3
+30002,VIRGINIA,2003,September,C,C,NORFOLK,6,7,5,7,11.00K,3.00K,EP2
