@@ -1,0 +1,4 @@
+event_id,state,year,month_name,event_type,cz_type,cz_name,injuries_direct,injuries_indirect,deaths_direct,deaths_indirect,damage_property,damage_crops,tor_f_scale
+10000,GEORGIA,2005,January,Z,C,QUITMAN,3,3,10.00K,5.00K,EP0
+10001,GEORGIA,2005,March,M,C,TALIAFERRO,5,7,17.00K,5.00K,EP3
+10002,GEORGIA,2005,May,M,C,CLINCH,5,7,18.00K,3.00K,EP3
