@@ -14,11 +14,14 @@ from enum import Enum
 import ipaddress
 import logging
 
+# Import validation functions from the new module
+from validation_utils import check_register_command, IP_address_valid, check_setupDHT
+
 # ============== GLOBAL VARIABLES =============== #
 client_dictionary = {}  # Global dictionary to store client information
 serverSocket = None  # Global socket variable
 DHT_set_up = False # Global bool to track whether DHT is set up or not
-socket_array = []
+socket_array = [] # List to track peer sockets
 
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
@@ -37,6 +40,21 @@ class client_state(Enum):
     FREE = 1
     LEADER = 2
     INDHT = 3
+    
+# ============== HELPER COMMAND: Print registered peers =============== #
+def print_all_peers():
+    if len(client_dictionary) <= 0:
+        logger.info("No currently registered peers")
+        return 
+        
+    logger.info("Current registered peers:")
+    for name, info in client_dictionary.items():
+        # Check if info is a dictionary or a list
+        if isinstance(info, dict):
+            logger.info(f"  - {name}: {info['state']}")
+        else:
+            # Assuming info is a list with state at index 3
+            logger.info(f"  - {name}: {info[3]}")
 
 
 # ============== HELPER COMMAND: gets neighbor info =============== #
@@ -56,169 +74,104 @@ def get_neighbor_info(message, client_address):
 
 # ============== DHT COMMAND: setupDHT =============== #
 def setupDHT(client_message, client_address):
-    if not check_setupDHT(client_message):
-        print("FAILURE")
+    if not check_setupDHT(client_message, client_dictionary, DHT_set_up):
+        logger.warning("Setup DHT failed: Invalid command format")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return
 
     # set DHT to true, and then continue with setting up DHT
+    global DHT_set_up
     DHT_set_up = True
 
     # set up all the commands
     command_args = client_message.split(" ")
+    peer_name = command_args[1]
+    n = int(command_args[2])
 
-    # have to update the remaining number of peers to inDHT and not free
-
-    # first, I'll update the leader's details to LEADER
-    leader_details = client_dictionary[command_args[1]]
-    leader_details[3] = client_state.LEADER
-
-    # "returning the tuple" really means writing socket details to socket array
-    # in other words, I'll be making another socket for each of the peers
-    # first, I'll establish the leader at index 0 (the index is their ID)
-    socket_array.append((leader_details[0], int(leader_details[2])))
-    # socket_array[0].bind((leader_details[0], int(leader_details[2])))
-
-    # now, update n number of users
+    # Update leader's state
+    client_dictionary[peer_name]["state"] = client_state.LEADER
+    
+    # Add leader to socket array (index 0)
+    leader_info = client_dictionary[peer_name]
+    socket_array.append((leader_info["ip_addr"], int(leader_info["p_port"])))
+    
+    # Select n-1 other peers
     curr_count = 1
     for key in client_dictionary:
-        if key != command_args[1] and curr_count <= int(command_args[2]):
-            print("Initializing other peer sockets")
-            client_dictionary[key][3] = client_state.INDHT
-            socket_array.append((client_dictionary[key][0], int(client_dictionary[key][2])))
-            # socket_array[curr_count].bind((client_dictionary[key][0], int(client_dictionary[key][2])))
-            curr_count = curr_count + 1
-        elif curr_count > int(command_args[2]):
+        if key != peer_name and curr_count < n:
+            logger.info(f"Adding peer {key} to DHT")
+            client_dictionary[key]["state"] = client_state.INDHT
+            socket_array.append((client_dictionary[key]["ip_addr"], int(client_dictionary[key]["p_port"])))
+            curr_count += 1
+        if curr_count >= n:
             break
-        else:
-            continue
-
-    # brief error checking (seeing if all the states were altered correctly)
-    for key in client_dictionary:
-        print(key)
-        print(client_dictionary[key][3])
-
-    # brief error checking (seeing if the socket_array was initialized properly)
-    print(len(socket_array))
-    for item in socket_array:
-        print(item[1])
-
-    # then return success code
+    
+    # Log DHT setup
+    logger.info(f"DHT setup with leader {peer_name} and {n} total peers")
+    print_all_peers()
+    
+    # Add after parsing command_args
+    if len(client_dictionary) < n:
+        logger.warning(f"Not enough peers registered. Need {n}, have {len(client_dictionary)}")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return
+    
+    # Return success
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), client_address)
 
 
-def check_setupDHT(client_message):
-    command = client_message.split(" ")
-
-    # first check that the command is the first in the line
-    if command[0] != "setup-dht":
-        print("setup-dht error")
-        return False
-
-    # if the peer name isn't registered
-    if not command[1] in client_dictionary:
-        print("peer has not registered")
-        return False
-
-    # I need to ensure that the third arg provided is actually an int
-    try:
-        user_num = int(command[2])
-    except ValueError:
-        print("num of users error")
-        return False
-
-    # user num can't be less than 3, and there has to be an equal number of users stored in dictionary
-    if user_num < 3:
-        print("num of users error")
-        return False
-    if user_num < len(client_dictionary):
-        print("num of users error")
-        return False
-
-    # I also need to ensure the last arg provided, year, is a integer
-    try:
-        year = int(command[3])
-    except ValueError:
-        print("year error")
-        return False
-
-    # the data we're populating in DHT only runs between 1950-2019
-    if year < 1950 or year > 2019:
-        return False
-
-    # if the DHT has already been set up
-    if DHT_set_up:
-        print("DHT already set up error")
-        return False
-
-    return True
-
-
 # ============== DHT COMMAND: register =============== #
 def register_client(client_message, clientAddress):
-    if not check_register_command(client_message):
-        logger.error("Registration failed: Invalid command format")
+    if not check_register_command(client_message, client_dictionary):
+        logger.error(f"Registration failed from {clientAddress}: Invalid command format")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), clientAddress)
         return
-
+    
+    # parse command
     command = client_message.split(" ")
-    # after error checking, I can add the registered client in the dictionary
-    logger.info(f"Successfully registered client: {command[1]}")
-
-    client_dictionary[command[1]] = [command[2], command[3], command[4], client_state.FREE]
+    peer_name = command[1]
+    ip_addr = command[2]
+    m_port = command[3]
+    p_port = command[4]
+    
+    # Check if ports are unique for this IP address 
+    for name, info in client_dictionary.items():
+        if isinstance(info, dict):
+            # Dictionary format
+            if info["ip_addr"] == ip_addr:
+                if info["m_port"] == m_port or info["p_port"] == p_port:
+                    logger.warning(f"Registration failed: Ports must be unique per IP address")
+                    client_response = "FAILURE"
+                    serverSocket.sendto(client_response.encode(), clientAddress)
+                    return
+        else:
+            # List format
+            if info[0] == ip_addr:
+                if info[1] == m_port or info[2] == p_port:
+                    logger.warning(f"Registration failed: Ports must be unique per IP address")
+                    client_response = "FAILURE"
+                    serverSocket.sendto(client_response.encode(), clientAddress)
+                    return
+    
+    # If port is unique, store client information
+    client_dictionary[peer_name] = {
+        "ip_addr": ip_addr,
+        "m_port": m_port,
+        "p_port": p_port,
+        "state": client_state.FREE,
+        "address": clientAddress,
+    }
+    
+    logger.info(f"Successfully registered client: {peer_name} at {ip_addr} with m_port={m_port}, p_port={p_port}.")
     client_response = "SUCCESS"
-
     serverSocket.sendto(client_response.encode(), clientAddress)
-
-
-# ============== FUNCTION: VALIDATE REGISTRATION COMMAND FORMAT =============== #
-def check_register_command(client_message):
-    # See if 4 arguments total in register command (register +  4 args)
-    command = client_message.split(" ")
-    if len(command) != 5:
-        logger.warning("Invalid number of arguments")  # Add log
-        return False
-
-    # This is all for checking if the register command lines up with the syntax provided
-    # The m-port, p-port, and IP address still need to be checked, though
-
-    # This is to check if first argument is register
-    if command[0] != "register":
-        logger.warning("First argument is not 'register'")
-        return False
-
-    # Then, this is to check that the first command is not greater than 15 in length, not lesser than 1
-    # also, to check if it's all alphabetical characters, and if the name isn't in the dictionary
-    if len(command[1]) > 15 or len(command[1]) < 1:
-        logger.warning(f"Invalid peer name length: {command[1]}")
-        return False
-    if not command[1].isalpha():
-        logger.warning(f"Peer name not alphabetic: {command[1]}")
-        return False
-    if command[1] in client_dictionary:
-        logger.warning(f"Peer name already exists: {command[1]}")
-        return False
-
-    if not IP_address_valid(command[2]):
-        logger.warning(f"Invalid IP address: {command[2]}")
-        return False
-
-    # the m-port has to be unique from a p-port, and it has to be unique for each process
-    if command[3] == command[4]:
-        logger.warning(f"m_port and p_port are identical: {command[3]}")
-        return False
-
-    return True
-
-
-# ============== FUNCTION: VALIDATE IP ADDRESS =============== #
-def IP_address_valid(entered_IP_address):
-    try:
-        ipaddress.ip_address(entered_IP_address)
-        return True
-    except ValueError:
-        return False
+    
+    # Log current registered peers
+    print_all_peers()
 
 
 # ============== MAIN =============== #
@@ -240,6 +193,8 @@ def main():
     global serverSocket
     serverSocket = socket(AF_INET, SOCK_DGRAM)
     serverSocket.bind(('', serverPort))
+    
+    # Log server starting
     print("===== TO EXIT THE PROGRAM, SIMPLY DO CRTL + C =====")
     logger.info(f"Server started on port {serverPort}")
 
