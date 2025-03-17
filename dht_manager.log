@@ -27,3 +27,66 @@
 2025-03-16 19:11:20,094 - INFO - Server started on port 12345
 2025-03-16 19:11:32,539 - INFO - Received message from ('127.0.0.1', 52472): hello
 2025-03-16 19:11:32,540 - WARNING - Unknown command received from ('127.0.0.1', 52472)
+2025-03-17 10:52:18,681 - INFO - Server started on port 12345
+2025-03-17 10:53:04,251 - INFO - Received message from ('127.0.0.1', 53068): # Terminal 1
+2025-03-17 10:53:04,252 - WARNING - Unknown command received from ('127.0.0.1', 53068)
+2025-03-17 10:53:12,601 - INFO - Received message from ('127.0.0.1', 53068): > register peer1 127.0.0.1 8001 8002register peer1 127.0.0.1 8001 8002
+2025-03-17 10:53:12,601 - WARNING - Invalid number of arguments
+2025-03-17 10:53:12,601 - ERROR - Registration failed from ('127.0.0.1', 53068): Invalid command format
+2025-03-17 10:53:25,652 - INFO - Received message from ('127.0.0.1', 53068): register peer1 127.0.0.1 8001 8002
+2025-03-17 10:53:25,652 - WARNING - Peer name not alphabetic: peer1
+2025-03-17 10:53:25,652 - ERROR - Registration failed from ('127.0.0.1', 53068): Invalid command format
+2025-03-17 10:53:40,067 - INFO - Received message from ('127.0.0.1', 58198): register peer1 127.0.0.1 8001 8002
+2025-03-17 10:53:40,067 - WARNING - Peer name not alphabetic: peer1
+2025-03-17 10:53:40,067 - ERROR - Registration failed from ('127.0.0.1', 58198): Invalid command format
+2025-03-17 10:53:42,918 - INFO - Received message from ('127.0.0.1', 59461): register peer1 127.0.0.1 8001 8002
+2025-03-17 10:53:42,918 - WARNING - Peer name not alphabetic: peer1
+2025-03-17 10:53:42,919 - ERROR - Registration failed from ('127.0.0.1', 59461): Invalid command format
+2025-03-17 10:58:25,136 - INFO - Server shutting down
+2025-03-17 10:58:25,137 - INFO - Server socket closed
+2025-03-17 10:58:26,639 - INFO - Server started on port 12345
+2025-03-17 10:58:53,770 - INFO - Received message from ('127.0.0.1', 58390): register peer1 127.0.0.1 8001 8002
+2025-03-17 10:58:53,771 - INFO - Successfully registered client: peer1 at 127.0.0.1 with m_port=8001, p_port=8002.
+2025-03-17 10:58:53,771 - INFO - Current registered peers:
+2025-03-17 10:58:53,771 - INFO -   - peer1: client_state.FREE
+2025-03-17 10:59:53,837 - INFO - Server shutting down
+2025-03-17 10:59:53,837 - INFO - Server socket closed
+2025-03-17 11:01:40,144 - INFO - Server started on port 12345
+2025-03-17 11:02:00,320 - INFO - Received message from ('127.0.0.1', 59314): register peer1 127.0.0.1 8001 8002
+2025-03-17 11:02:00,321 - INFO - Successfully registered client: peer1 at 127.0.0.1 with m_port=8001, p_port=8002.
+2025-03-17 11:02:00,321 - INFO - Current registered peers:
+2025-03-17 11:02:00,322 - INFO -   ✅ peer1: client_state.FREE
+2025-03-17 11:02:20,359 - INFO - Received message from ('127.0.0.1', 65264): register peer1 127.0.0.1 8001 8002
+2025-03-17 11:02:20,359 - WARNING - Peer name already exists: peer1
+2025-03-17 11:02:20,359 - ERROR - Registration failed from ('127.0.0.1', 65264): Invalid command format
+2025-03-17 11:02:42,692 - INFO - Received message from ('127.0.0.1', 65264): rregister peer2 127.0.0.1 8003 8004
+2025-03-17 11:02:42,692 - WARNING - First argument is not 'register'
+2025-03-17 11:02:42,692 - ERROR - Registration failed from ('127.0.0.1', 65264): Invalid command format
+2025-03-17 11:02:48,392 - INFO - Received message from ('127.0.0.1', 65264): register peer2 127.0.0.1 8003 8004
+2025-03-17 11:02:48,392 - INFO - Successfully registered client: peer2 at 127.0.0.1 with m_port=8003, p_port=8004.
+2025-03-17 11:02:48,392 - INFO - Current registered peers:
+2025-03-17 11:02:48,393 - INFO -   ✅ peer1: client_state.FREE
+2025-03-17 11:02:48,393 - INFO -   ✅ peer2: client_state.FREE
+2025-03-17 11:02:56,839 - INFO - Received message from ('127.0.0.1', 59492): register peer3 127.0.0.1 8005 8006
+2025-03-17 11:02:56,839 - INFO - Successfully registered client: peer3 at 127.0.0.1 with m_port=8005, p_port=8006.
+2025-03-17 11:02:56,840 - INFO - Current registered peers:
+2025-03-17 11:02:56,840 - INFO -   ✅ peer1: client_state.FREE
+2025-03-17 11:02:56,840 - INFO -   ✅ peer2: client_state.FREE
+2025-03-17 11:02:56,840 - INFO -   ✅ peer3: client_state.FREE
+2025-03-17 11:04:16,927 - INFO - Server shutting down
+2025-03-17 11:04:16,928 - INFO - Server socket closed
+2025-03-17 11:13:32,659 - INFO - Server started on port 12345
+2025-03-17 11:13:53,650 - INFO - Received message from ('127.0.0.1', 53363): hello
+2025-03-17 11:13:53,651 - WARNING - Unknown command received from ('127.0.0.1', 53363)
+2025-03-17 11:15:06,604 - INFO - Server shutting down
+2025-03-17 11:15:06,604 - INFO - Server socket closed
+2025-03-17 11:15:07,821 - INFO - Server started on port 12345
+2025-03-17 11:15:14,734 - INFO - Received message from ('127.0.0.1', 51828): hello
+2025-03-17 11:15:14,734 - WARNING - Unknown command received from ('127.0.0.1', 51828)
+2025-03-17 11:15:29,902 - INFO - Server shutting down
+2025-03-17 11:15:29,902 - INFO - Server socket closed
+► 2025-03-17 11:15:32,420 - INFO - Server started on port 12345
+► 2025-03-17 11:15:39,562 - INFO - Received message from ('127.0.0.1', 50386): hello
+► 2025-03-17 11:15:39,563 - WARNING - Unknown command received from ('127.0.0.1', 50386)
+► 2025-03-17 11:15:43,929 - INFO - Server shutting down
+► 2025-03-17 11:15:43,929 - INFO - Server socket closed

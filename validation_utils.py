@@ -25,35 +25,41 @@ def check_register_command(client_message, client_dictionary):
         bool: True if valid, False otherwise
     """
     # See if 4 arguments total in register command (register + 4 args)
-    command = client_message.split(" ")
-    if len(command) != 5:
+    client_message_arr = client_message.split(" ")
+    command =  client_message_arr[0]
+    peer_name =  client_message_arr[1]
+    ip_addr =  client_message_arr[2]
+    m_port =  client_message_arr[3]
+    p_port =  client_message_arr[4]
+    
+    if len(client_message_arr) != 5:
         logger.warning("Invalid number of arguments")
         return False
 
     # Check if first argument is register
-    if command[0] != "register":
+    if command != "register":
         logger.warning("First argument is not 'register'")
         return False
 
     # Check peer name requirements
-    if len(command[1]) > 15 or len(command[1]) < 1:
-        logger.warning(f"Invalid peer name length: {command[1]}")
+    if len(peer_name) > 15 or len(peer_name) < 1:
+        logger.warning(f"Invalid peer name length: {peer_name}")
         return False
-    if not command[1].isalpha():
-        logger.warning(f"Peer name not alphabetic: {command[1]}")
+    if not peer_name.isalnum():
+        logger.warning(f"Peer name not alphanumeric: {peer_name}")
         return False
-    if command[1] in client_dictionary:
-        logger.warning(f"Peer name already exists: {command[1]}")
+    if peer_name in client_dictionary:
+        logger.warning(f"Peer name already exists: {peer_name}")
         return False
 
     # Check IP address
-    if not IP_address_valid(command[2]):
-        logger.warning(f"Invalid IP address: {command[2]}")
+    if not IP_address_valid(ip_addr):
+        logger.warning(f"Invalid IP address: {ip_addr}")
         return False
 
     # Check ports
-    if command[3] == command[4]:
-        logger.warning(f"m_port and p_port are identical: {command[3]}")
+    if m_port == p_port:
+        logger.warning(f"m_port and p_port are identical: {m_port}")
         return False
 
     return True

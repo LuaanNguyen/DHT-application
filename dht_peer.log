@@ -38,3 +38,77 @@
 2025-03-14 21:45:45,246 - INFO - Connected to manager at localhost:12345
 2025-03-14 21:45:48,796 - INFO - Sent message to manager: Hello
 2025-03-14 21:45:48,797 - INFO - Received response from manager: Unknown command
+2025-03-17 10:52:41,591 - INFO - Connected to manager at localhost:12345
+2025-03-17 10:52:43,810 - INFO - Connected to manager at localhost:12345
+2025-03-17 10:52:45,174 - INFO - Connected to manager at localhost:12345
+2025-03-17 10:53:04,251 - INFO - Sent to manager: # Terminal 1
+2025-03-17 10:53:04,252 - INFO - Received from manager: Unknown command
+2025-03-17 10:53:12,601 - INFO - Sent to manager: > register peer1 127.0.0.1 8001 8002register peer1 127.0.0.1 8001 8002
+2025-03-17 10:53:12,602 - INFO - Received from manager: FAILURE
+2025-03-17 10:53:25,651 - INFO - Sent to manager: register peer1 127.0.0.1 8001 8002
+2025-03-17 10:53:25,652 - INFO - Received from manager: FAILURE
+2025-03-17 10:53:40,067 - INFO - Sent to manager: register peer1 127.0.0.1 8001 8002
+2025-03-17 10:53:40,068 - INFO - Received from manager: FAILURE
+2025-03-17 10:53:42,918 - INFO - Sent to manager: register peer1 127.0.0.1 8001 8002
+2025-03-17 10:53:42,919 - INFO - Received from manager: FAILURE
+2025-03-17 10:58:28,584 - INFO - Peer terminated by user
+2025-03-17 10:58:28,584 - INFO - Peer shutdown complete
+2025-03-17 10:58:29,027 - INFO - Peer terminated by user
+2025-03-17 10:58:29,028 - INFO - Peer shutdown complete
+2025-03-17 10:58:29,553 - INFO - Peer terminated by user
+2025-03-17 10:58:29,553 - INFO - Peer shutdown complete
+2025-03-17 10:58:39,469 - INFO - Connected to manager at localhost:12345
+2025-03-17 10:58:53,769 - INFO - Sent to manager: register peer1 127.0.0.1 8001 8002
+2025-03-17 10:58:53,771 - INFO - Received from manager: SUCCESS
+2025-03-17 10:58:53,771 - INFO - Peer socket bound to port 8002
+2025-03-17 10:59:54,284 - INFO - Peer terminated by user
+2025-03-17 10:59:54,284 - INFO - Peer shutdown complete
+2025-03-17 11:01:45,133 - INFO - Connected to manager at localhost:12345
+2025-03-17 11:02:00,319 - INFO - Sent to manager: register peer1 127.0.0.1 8001 8002
+2025-03-17 11:02:00,321 - INFO - Received from manager: SUCCESS
+2025-03-17 11:02:00,322 - INFO - Peer socket bound to port 8002
+2025-03-17 11:02:18,880 - INFO - Connected to manager at localhost:12345
+2025-03-17 11:02:20,359 - INFO - Sent to manager: register peer1 127.0.0.1 8001 8002
+2025-03-17 11:02:20,359 - INFO - Received from manager: FAILURE
+2025-03-17 11:02:42,691 - INFO - Sent to manager: rregister peer2 127.0.0.1 8003 8004
+2025-03-17 11:02:42,692 - INFO - Received from manager: FAILURE
+2025-03-17 11:02:48,392 - INFO - Sent to manager: register peer2 127.0.0.1 8003 8004
+2025-03-17 11:02:48,393 - INFO - Received from manager: SUCCESS
+2025-03-17 11:02:48,393 - INFO - Peer socket bound to port 8004
+2025-03-17 11:02:56,130 - INFO - Connected to manager at localhost:12345
+2025-03-17 11:02:56,839 - INFO - Sent to manager: register peer3 127.0.0.1 8005 8006
+2025-03-17 11:02:56,840 - INFO - Received from manager: SUCCESS
+2025-03-17 11:02:56,840 - INFO - Peer socket bound to port 8006
+2025-03-17 11:04:05,483 - INFO - User requested exit
+2025-03-17 11:04:05,484 - INFO - Peer shutdown complete
+2025-03-17 11:04:10,823 - INFO - User requested exit
+2025-03-17 11:04:10,824 - INFO - Peer shutdown complete
+2025-03-17 11:04:12,986 - INFO - User requested exit
+2025-03-17 11:04:12,987 - INFO - Peer shutdown complete
+2025-03-17 11:06:26,553 - INFO - Connected to manager at localhost:12345
+2025-03-17 11:06:27,281 - INFO - Peer terminated by user
+2025-03-17 11:06:27,281 - INFO - Peer shutdown complete
+2025-03-17 11:07:51,502 - INFO - Connected to manager at localhost:12345
+2025-03-17 11:13:01,633 - INFO - Connected to manager at localhost:12345
+2025-03-17 11:13:13,558 - INFO - User requested exit
+2025-03-17 11:13:13,560 - INFO - Peer shutdown complete
+2025-03-17 11:13:16,851 - INFO - Connected to manager at localhost:12345
+2025-03-17 11:13:21,383 - INFO - Peer terminated by user
+2025-03-17 11:13:21,384 - INFO - Peer shutdown complete
+2025-03-17 11:13:47,775 - INFO - Peer terminated by user
+2025-03-17 11:13:47,776 - INFO - Peer shutdown complete
+2025-03-17 11:13:48,949 - INFO - Connected to manager at localhost:12345
+2025-03-17 11:13:53,648 - INFO - Sent to manager: hello
+2025-03-17 11:13:53,651 - INFO - Received from manager: Unknown command
+2025-03-17 11:14:06,856 - INFO - Peer terminated by user
+2025-03-17 11:14:06,856 - INFO - Peer shutdown complete
+► 2025-03-17 11:15:13,382 - INFO - Connected to manager at localhost:12345
+► 2025-03-17 11:15:14,733 - INFO - Sent to manager: hello
+► 2025-03-17 11:15:14,734 - INFO - Received from manager: Unknown command
+► 2025-03-17 11:15:30,921 - INFO - Peer terminated by user
+► 2025-03-17 11:15:30,922 - INFO - Peer shutdown complete
+► 2025-03-17 11:15:37,081 - INFO - Connected to manager at localhost:12345
+► 2025-03-17 11:15:39,562 - INFO - Sent to manager: hello
+► 2025-03-17 11:15:39,563 - INFO - Received from manager: Unknown command
+► 2025-03-17 11:15:43,255 - INFO - Peer terminated by user
+► 2025-03-17 11:15:43,256 - INFO - Peer shutdown complete

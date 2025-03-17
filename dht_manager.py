@@ -26,7 +26,7 @@ socket_array = [] # List to track peer sockets
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
     level=logging.INFO,  # Set logging level
-    format='%(asctime)s - %(levelname)s - %(message)s',  # Set log message format
+    format='► %(asctime)s - %(levelname)s - %(message)s',  # Set log message format
     handlers=[
         logging.FileHandler('dht_manager.log'),  # Log to file dht_manager.log
         logging.StreamHandler()  # Log to console
@@ -44,17 +44,17 @@ class client_state(Enum):
 # ============== HELPER COMMAND: Print registered peers =============== #
 def print_all_peers():
     if len(client_dictionary) <= 0:
-        logger.info("No currently registered peers")
+        logger.info("No currently registered peers 💻")
         return 
         
     logger.info("Current registered peers:")
     for name, info in client_dictionary.items():
         # Check if info is a dictionary or a list
         if isinstance(info, dict):
-            logger.info(f"  - {name}: {info['state']}")
+            logger.info(f"  ✅ {name}: {info['state']}")
         else:
             # Assuming info is a list with state at index 3
-            logger.info(f"  - {name}: {info[3]}")
+            logger.info(f"  ✅ {name}: {info[3]}")
 
 
 # ============== HELPER COMMAND: gets neighbor info =============== #
@@ -74,6 +74,8 @@ def get_neighbor_info(message, client_address):
 
 # ============== DHT COMMAND: setupDHT =============== #
 def setupDHT(client_message, client_address):
+    global DHT_set_up
+        
     if not check_setupDHT(client_message, client_dictionary, DHT_set_up):
         logger.warning("Setup DHT failed: Invalid command format")
         client_response = "FAILURE"
@@ -81,7 +83,6 @@ def setupDHT(client_message, client_address):
         return
 
     # set DHT to true, and then continue with setting up DHT
-    global DHT_set_up
     DHT_set_up = True
 
     # set up all the commands
@@ -195,6 +196,7 @@ def main():
     serverSocket.bind(('', serverPort))
     
     # Log server starting
+    print("✨ ================== DHT Manager ==================== ✨")
     print("===== TO EXIT THE PROGRAM, SIMPLY DO CRTL + C =====")
     logger.info(f"Server started on port {serverPort}")
 
