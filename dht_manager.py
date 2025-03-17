@@ -40,6 +40,21 @@ class client_state(Enum):
     FREE = 1
     LEADER = 2
     INDHT = 3
+    
+# ============== HELPER COMMAND: Print registered peers =============== #
+def print_all_peers():
+    if len(client_dictionary) <= 0:
+        logger.info("No currently registered peers")
+        return 
+        
+    logger.info("Current registered peers:")
+    for name, info in client_dictionary.items():
+        # Check if info is a dictionary or a list
+        if isinstance(info, dict):
+            logger.info(f"  - {name}: {info['state']}")
+        else:
+            # Assuming info is a list with state at index 3
+            logger.info(f"  - {name}: {info[3]}")
 
 
 # ============== HELPER COMMAND: gets neighbor info =============== #
@@ -60,54 +75,50 @@ def get_neighbor_info(message, client_address):
 # ============== DHT COMMAND: setupDHT =============== #
 def setupDHT(client_message, client_address):
     if not check_setupDHT(client_message, client_dictionary, DHT_set_up):
-        print("FAILURE")
+        logger.warning("Setup DHT failed: Invalid command format")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return
 
     # set DHT to true, and then continue with setting up DHT
+    global DHT_set_up
     DHT_set_up = True
 
     # set up all the commands
     command_args = client_message.split(" ")
+    peer_name = command_args[1]
+    n = int(command_args[2])
 
-    # have to update the remaining number of peers to inDHT and not free
-
-    # first, I'll update the leader's details to LEADER
-    leader_details = client_dictionary[command_args[1]]
-    leader_details[3] = client_state.LEADER
-
-    # "returning the tuple" really means writing socket details to socket array
-    # in other words, I'll be making another socket for each of the peers
-    # first, I'll establish the leader at index 0 (the index is their ID)
-    socket_array.append((leader_details[0], int(leader_details[2])))
-    # socket_array[0].bind((leader_details[0], int(leader_details[2])))
-
-    # now, update n number of users
+    # Update leader's state
+    client_dictionary[peer_name]["state"] = client_state.LEADER
+    
+    # Add leader to socket array (index 0)
+    leader_info = client_dictionary[peer_name]
+    socket_array.append((leader_info["ip_addr"], int(leader_info["p_port"])))
+    
+    # Select n-1 other peers
     curr_count = 1
     for key in client_dictionary:
-        if key != command_args[1] and curr_count <= int(command_args[2]):
-            print("Initializing other peer sockets")
-            client_dictionary[key][3] = client_state.INDHT
-            socket_array.append((client_dictionary[key][0], int(client_dictionary[key][2])))
-            # socket_array[curr_count].bind((client_dictionary[key][0], int(client_dictionary[key][2])))
-            curr_count = curr_count + 1
-        elif curr_count > int(command_args[2]):
+        if key != peer_name and curr_count < n:
+            logger.info(f"Adding peer {key} to DHT")
+            client_dictionary[key]["state"] = client_state.INDHT
+            socket_array.append((client_dictionary[key]["ip_addr"], int(client_dictionary[key]["p_port"])))
+            curr_count += 1
+        if curr_count >= n:
             break
-        else:
-            continue
-
-    # brief error checking (seeing if all the states were altered correctly)
-    for key in client_dictionary:
-        print(key)
-        print(client_dictionary[key][3])
-
-    # brief error checking (seeing if the socket_array was initialized properly)
-    print(len(socket_array))
-    for item in socket_array:
-        print(item[1])
-
-    # then return success code
+    
+    # Log DHT setup
+    logger.info(f"DHT setup with leader {peer_name} and {n} total peers")
+    print_all_peers()
+    
+    # Add after parsing command_args
+    if len(client_dictionary) < n:
+        logger.warning(f"Not enough peers registered. Need {n}, have {len(client_dictionary)}")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return
+    
+    # Return success
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), client_address)
 
@@ -115,8 +126,8 @@ def setupDHT(client_message, client_address):
 # ============== DHT COMMAND: register =============== #
 def register_client(client_message, clientAddress):
     if not check_register_command(client_message, client_dictionary):
-        logger.error("Registration failed from {clientAddress}: Invalid command format")
-        clinet_response = "FAILTURE"
+        logger.error(f"Registration failed from {clientAddress}: Invalid command format")
+        client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), clientAddress)
         return
     
@@ -129,26 +140,38 @@ def register_client(client_message, clientAddress):
     
     # Check if ports are unique for this IP address 
     for name, info in client_dictionary.items():
-        if info[0] == ip_addr:
-            if info[1] == m_port or info[2] == p_port:
-                logger.warning(f"Registration failed: Ports must be unique per IP address")
-                client_response = "FAILTURE"
-                serverSocket.sendto(client_response.encode(), clientAddress)
-                return
-    
+        if isinstance(info, dict):
+            # Dictionary format
+            if info["ip_addr"] == ip_addr:
+                if info["m_port"] == m_port or info["p_port"] == p_port:
+                    logger.warning(f"Registration failed: Ports must be unique per IP address")
+                    client_response = "FAILURE"
+                    serverSocket.sendto(client_response.encode(), clientAddress)
+                    return
+        else:
+            # List format
+            if info[0] == ip_addr:
+                if info[1] == m_port or info[2] == p_port:
+                    logger.warning(f"Registration failed: Ports must be unique per IP address")
+                    client_response = "FAILURE"
+                    serverSocket.sendto(client_response.encode(), clientAddress)
+                    return
     
     # If port is unique, store client information
     client_dictionary[peer_name] = {
-        "ip_addr" : ip_addr,
-        "m_port" : m_port,
-        "p_port" : p_port,
-        "state" : client_state.FREE,
+        "ip_addr": ip_addr,
+        "m_port": m_port,
+        "p_port": p_port,
+        "state": client_state.FREE,
         "address": clientAddress,
     }
     
     logger.info(f"Successfully registered client: {peer_name} at {ip_addr} with m_port={m_port}, p_port={p_port}.")
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), clientAddress)
+    
+    # Log current registered peers
+    print_all_peers()
 
 
 # ============== MAIN =============== #
