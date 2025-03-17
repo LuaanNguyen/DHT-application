@@ -14,12 +14,17 @@ import select
 import logging
 
 # ============== GLOBAL VARIABLES FOR A PEER =============== #
-id = -1
+#Peer state
+peer_id = -1
+peer_name = ""
 right_neighbor = None
 ring_size = -1
-socket_array = []
+local_hash_table = {}
 input_file = ""
 
+#sockets
+manager_socket = None
+peer_socket = None
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
     level=logging.INFO, # Setting logging level
@@ -30,10 +35,21 @@ logging.basicConfig(
     ]
 )
 
+logger = logging.getLogger(__name__)
+
+# ============== HELPER FUNCTIONS =============== #
 def count_line(filename):
-    with open(filename, 'r') as file:
-        lines = file.readlines()
-    return len(lines) - 1
+    """Count total line in a file"""
+    try:
+        with open(filename, 'r') as file:
+            lines = file.readlines()
+        return len(lines) - 1
+    except FileNotFoundError:
+        logger.error(f"File not found: {filename}")
+        return 0
+    except Exception as e:
+        logger.error(f"Error reading file: {filename}")
+        return 0
 
 
 def check_udp_data(sock):
