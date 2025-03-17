@@ -21,7 +21,7 @@ from validation_utils import check_register_command, IP_address_valid, check_set
 client_dictionary = {}  # Global dictionary to store client information
 serverSocket = None  # Global socket variable
 DHT_set_up = False # Global bool to track whether DHT is set up or not
-socket_array = []
+socket_array = [] # List to track peer sockets
 
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
@@ -115,15 +115,39 @@ def setupDHT(client_message, client_address):
 # ============== DHT COMMAND: register =============== #
 def register_client(client_message, clientAddress):
     if not check_register_command(client_message, client_dictionary):
-        logger.error("Registration failed: Invalid command format")
+        logger.error("Registration failed from {clientAddress}: Invalid command format")
+        clinet_response = "FAILTURE"
+        serverSocket.sendto(client_response.encode(), clientAddress)
         return
-
+    
+    # parse command
     command = client_message.split(" ")
-    logger.info(f"Successfully registered client: {command[1]}")
-
-    client_dictionary[command[1]] = [command[2], command[3], command[4], client_state.FREE]
+    peer_name = command[1]
+    ip_addr = command[2]
+    m_port = command[3]
+    p_port = command[4]
+    
+    # Check if ports are unique for this IP address 
+    for name, info in client_dictionary.items():
+        if info[0] == ip_addr:
+            if info[1] == m_port or info[2] == p_port:
+                logger.warning(f"Registration failed: Ports must be unique per IP address")
+                client_response = "FAILTURE"
+                serverSocket.sendto(client_response.encode(), clientAddress)
+                return
+    
+    
+    # If port is unique, store client information
+    client_dictionary[peer_name] = {
+        "ip_addr" : ip_addr,
+        "m_port" : m_port,
+        "p_port" : p_port,
+        "state" : client_state.FREE,
+        "address": clientAddress,
+    }
+    
+    logger.info(f"Successfully registered client: {peer_name} at {ip_addr} with m_port={m_port}, p_port={p_port}.")
     client_response = "SUCCESS"
-
     serverSocket.sendto(client_response.encode(), clientAddress)
 
 
@@ -146,6 +170,8 @@ def main():
     global serverSocket
     serverSocket = socket(AF_INET, SOCK_DGRAM)
     serverSocket.bind(('', serverPort))
+    
+    # Log server starting
     print("===== TO EXIT THE PROGRAM, SIMPLY DO CRTL + C =====")
     logger.info(f"Server started on port {serverPort}")
 
