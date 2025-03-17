@@ -37,9 +37,9 @@ logger = logging.getLogger(__name__)
 
 # ============== CLIENT STATE ENUM =============== #
 class client_state(Enum):
-    FREE = 1
-    LEADER = 2
-    INDHT = 3
+    FREE = 1 # A peer is able to participate in any capacity
+    LEADER = 2 # A peer that leads the construction of the DHT
+    INDHT = 3 #A peer that is one of the members of the DHT
     
 # ============== HELPER COMMAND: Print registered peers =============== #
 def print_all_peers():
@@ -191,7 +191,7 @@ def main():
 
     # Create UDP socket
     global serverSocket
-    serverSocket = socket(AF_INET, SOCK_DGRAM)
+    serverSocket = socket(AF_INET, SOCK_DGRAM) #IPv4, UDP
     serverSocket.bind(('', serverPort))
     
     # Log server starting
