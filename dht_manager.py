@@ -14,6 +14,9 @@ from enum import Enum
 import ipaddress
 import logging
 
+# Import validation functions from the new module
+from validation_utils import check_register_command, IP_address_valid, check_setupDHT
+
 # ============== GLOBAL VARIABLES =============== #
 client_dictionary = {}  # Global dictionary to store client information
 serverSocket = None  # Global socket variable
@@ -56,7 +59,7 @@ def get_neighbor_info(message, client_address):
 
 # ============== DHT COMMAND: setupDHT =============== #
 def setupDHT(client_message, client_address):
-    if not check_setupDHT(client_message):
+    if not check_setupDHT(client_message, client_dictionary, DHT_set_up):
         print("FAILURE")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
@@ -109,116 +112,19 @@ def setupDHT(client_message, client_address):
     serverSocket.sendto(client_response.encode(), client_address)
 
 
-def check_setupDHT(client_message):
-    command = client_message.split(" ")
-
-    # first check that the command is the first in the line
-    if command[0] != "setup-dht":
-        print("setup-dht error")
-        return False
-
-    # if the peer name isn't registered
-    if not command[1] in client_dictionary:
-        print("peer has not registered")
-        return False
-
-    # I need to ensure that the third arg provided is actually an int
-    try:
-        user_num = int(command[2])
-    except ValueError:
-        print("num of users error")
-        return False
-
-    # user num can't be less than 3, and there has to be an equal number of users stored in dictionary
-    if user_num < 3:
-        print("num of users error")
-        return False
-    if user_num < len(client_dictionary):
-        print("num of users error")
-        return False
-
-    # I also need to ensure the last arg provided, year, is a integer
-    try:
-        year = int(command[3])
-    except ValueError:
-        print("year error")
-        return False
-
-    # the data we're populating in DHT only runs between 1950-2019
-    if year < 1950 or year > 2019:
-        return False
-
-    # if the DHT has already been set up
-    if DHT_set_up:
-        print("DHT already set up error")
-        return False
-
-    return True
-
-
 # ============== DHT COMMAND: register =============== #
 def register_client(client_message, clientAddress):
-    if not check_register_command(client_message):
+    if not check_register_command(client_message, client_dictionary):
         logger.error("Registration failed: Invalid command format")
         return
 
     command = client_message.split(" ")
-    # after error checking, I can add the registered client in the dictionary
     logger.info(f"Successfully registered client: {command[1]}")
 
     client_dictionary[command[1]] = [command[2], command[3], command[4], client_state.FREE]
     client_response = "SUCCESS"
 
     serverSocket.sendto(client_response.encode(), clientAddress)
-
-
-# ============== FUNCTION: VALIDATE REGISTRATION COMMAND FORMAT =============== #
-def check_register_command(client_message):
-    # See if 4 arguments total in register command (register +  4 args)
-    command = client_message.split(" ")
-    if len(command) != 5:
-        logger.warning("Invalid number of arguments")  # Add log
-        return False
-
-    # This is all for checking if the register command lines up with the syntax provided
-    # The m-port, p-port, and IP address still need to be checked, though
-
-    # This is to check if first argument is register
-    if command[0] != "register":
-        logger.warning("First argument is not 'register'")
-        return False
-
-    # Then, this is to check that the first command is not greater than 15 in length, not lesser than 1
-    # also, to check if it's all alphabetical characters, and if the name isn't in the dictionary
-    if len(command[1]) > 15 or len(command[1]) < 1:
-        logger.warning(f"Invalid peer name length: {command[1]}")
-        return False
-    if not command[1].isalpha():
-        logger.warning(f"Peer name not alphabetic: {command[1]}")
-        return False
-    if command[1] in client_dictionary:
-        logger.warning(f"Peer name already exists: {command[1]}")
-        return False
-
-    if not IP_address_valid(command[2]):
-        logger.warning(f"Invalid IP address: {command[2]}")
-        return False
-
-    # the m-port has to be unique from a p-port, and it has to be unique for each process
-    if command[3] == command[4]:
-        logger.warning(f"m_port and p_port are identical: {command[3]}")
-        return False
-
-    return True
-
-
-# ============== FUNCTION: VALIDATE IP ADDRESS =============== #
-def IP_address_valid(entered_IP_address):
-    try:
-        ipaddress.ip_address(entered_IP_address)
-        return True
-    except ValueError:
-        return False
 
 
 # ============== MAIN =============== #
