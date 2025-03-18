@@ -72,8 +72,8 @@ def get_neighbor_info(message, client_address):
     serverSocket.sendto(response_message.encode(), client_address)
 
 
-# ============== DHT COMMAND: setupDHT =============== #
-def setupDHT(client_message, client_address):
+# ============== DHT COMMAND: setup-dht =============== #
+def setup_DHT(client_message, client_address):
     global DHT_set_up
         
     if not check_setupDHT(client_message, client_dictionary, DHT_set_up):
@@ -122,7 +122,39 @@ def setupDHT(client_message, client_address):
     # Return success
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), client_address)
+    
+    
+# ============== DHT COMMAND: setup-dht =============== #
+def dht_complete(client_message, client_address):
+    global DHT_set_up
+    
+    # Parse command 
+    command = client_message.split(" ")
+    if len(command) != 2:
+        logger.warning("Invalid dht-complete format")
+        client_response = "FAILTURE Invalid Format"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return
+    
+    peer_name = command[1]
+    
+    # Validate sender is leader
+    if peer_name not in client_dictionary:
+        logger.warning(f"Unknown peer {peer_name} sent dht-complete")
+        client_response = "FAILURE Unknow Peer"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return 
 
+    if client_dictionary[peer_name]["state"] != client_state.LEADER:
+        logger.warning(f"Non-leader peer {peer_name} sent dht-complete")
+        client_response = "FAILURE Non-leader Peer"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return 
+
+    # Otherwise, mark DHT setup as complete, return success
+    logger.info(f"DHT Setup completed by leader {peer_name}")
+    client_response="SUCCESS"
+    serverSocket.sendto(client_response.encode(), client_address)
 
 # ============== DHT COMMAND: register =============== #
 def register_client(client_message, clientAddress):
@@ -211,12 +243,9 @@ def main():
             if "register" in message:
                 register_client(message, clientAddress)
             elif "setup-dht" in message:
-                # TODO: Implement setup-dht
-                setupDHT(message, clientAddress)
-                pass
+                setup_DHT(message, clientAddress)
             elif "dht-complete" in message:
-                # TODO: Implement dht-complete
-                pass
+                dht_complete(message, clientAddress)
             elif "get_neighbor_info" in message:
                 get_neighbor_info(message, clientAddress)
             else:
