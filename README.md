@@ -10,9 +10,9 @@
 
 📆 Full project due: `04/04/2025`
 
-📌 Design Doc: [CSE434: Socket Project](https://docs.google.com/document/d/1zdzy2W98iVG3k-rULQHCNX07EMCQG1knNZorXkv003U/edit?tab=t.0)
-📌 Time-space Diagram: [Time-space Diagram](https://docs.google.com/presentation/d/1ufCHWC4uRkZ89WrBdrQZOXyu7C4mGx7TVxSi8UaxVyE/edit#slide=id.p)
-📌 Video Demo: (TBD)
+📌 Design Doc: [CSE434: Socket Project](https://docs.google.com/document/d/1zdzy2W98iVG3k-rULQHCNX07EMCQG1knNZorXkv003U/edit?tab=t.0)  
+📌 Time-space Diagram: [Time-space Diagram](https://docs.google.com/presentation/d/1ufCHWC4uRkZ89WrBdrQZOXyu7C4mGx7TVxSi8UaxVyE/edit#slide=id.p)  
+📌 Video Demo: (TBD)  
 
 ## Architecture ⚙️
 
