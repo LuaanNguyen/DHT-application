@@ -1,27 +1,30 @@
 # CSE434 Socket Programming Project: DHT Application
 
+**Submit the project in a zip file named `Group<group_number>.zip**
+
+**No late submission is accepted**
+
 📆 Available: `Sunday 02/26/2025`
 
 📆 Midestone due: `Sunday 03/23/2025`
 
 📆 Full project due: `04/04/2025`
 
-📌 Link to Design Doc: [CSE434: Socket Project](https://docs.google.com/document/d/1zdzy2W98iVG3k-rULQHCNX07EMCQG1knNZorXkv003U/edit?tab=t.0)
+📌 Design Doc: [CSE434: Socket Project](https://docs.google.com/document/d/1zdzy2W98iVG3k-rULQHCNX07EMCQG1knNZorXkv003U/edit?tab=t.0)
+📌 Time-space Diagram: [Time-space Diagram](https://docs.google.com/presentation/d/1ufCHWC4uRkZ89WrBdrQZOXyu7C4mGx7TVxSi8UaxVyE/edit#slide=id.p)
+📌 Video Demo: (TBD)
 
 ## Architecture ⚙️
 
-- Written in Python
-- Version Control: git + github
-- Main parts:
-  - DHT Manager (always-on)
-  - Peers (storage nodes)
-  - Communication patterns (Hot Potato)
-    - Manager-Peer communication
-    - Peer-to-peer (P2P) communication
+- Written in `Python`
+- Version Control: `git` + `github`
+- Dependecies: check `requirements.txt`
 
 ![Architecture](architecture.png)
 
-## Setting up the python environment 💻
+## Environment Setup 💻
+
+Make sure you have [Python](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/) installed on your local machine.
 
 ```
 cd dht-application
@@ -34,33 +37,66 @@ pip list # check if all dependecies are properly installed
 
 ## Run the program 🏋️‍♀️
 
-### DHT Manager
+### DHT Manager (`dht_manager.py`)
 
 ```
-# Usage: python3 dht_manager.py <port>
+# python3 dht_manager.py <port>
 python3 dht_manager.py 12345
-
 ```
 
-### Peers
+### Peers (`dht_peer.py`)
 
-(May have multiple instance running)
+(Can have multiple instances running)
 
 ```
-# Usage: python3 dht_peer.py <manager_ip> <manager_port>
+# python3 dht_peer.py <manager_ip> <manager_port>
+
 python3 dht_peer.py localhost 12345
 
 ```
 
 ## Milestone Submission 📑
 
-- Implement following commands to the DHT Manager
-  - [ ] register
-  - [ ] setup-dht
-  - [ ] dht-complete
-- File file must contain:
-  - [ ] 50%: Design of the DHT application program (.pdf)
-  - [ ] 25%: Code and documentation
-  - [ ] 25%: Video Demo
+For the milestone deadline, you are to implement the following commands to the manager: `register`, `setup-dht`,
+and `dht-complete`. This also involves implementation of commands that may be issued among peers associated
+with these commands.
+
+- [ ] register
+- [ ] setup-dht
+- [ ] dht-complete
+
+1. Design document in PDF format (50%). Describe the design of your DHT application pro
+
+- [ ] Include a description of your message format for each command implemented for the miles
+- [ ] Include a time-space diagram for each command implemented to illustrate the order of messages exchanged between communicating entities, as well as the actions taken on the transmission and/or receipt of a message or other event.
+- [ ] Describe your choice of data structures used, implementation considerations, and other design decisions.
+- [ ] Include a snapshot showing commits made in your choice of version control system.
+- [ ] Provide a a link to your video demo and ensure that the link is accessible to our graders. In addition, give
+      a list of timestamps in your video at which each step 3(a)-3(d) is demonstrated.
+
+2. Code and documentation (25%). Submit your well-documented source code implementing the milestone of
+   your DHT application.
+
+3. Video demo (25%). Upload a video of length at most 7 minutes to YouTube with no splicing or edits, with audio
+   accompaniment. This video must be uploaded and timestamped before the milestone submission deadline.The video demo of your DHT application for the milestone must include:
+
+- [ ] Compile your manager and peer programs (if applicable)
+- [ ] Run the freshly compiled programs on at least two distinct end-hosts
+- [ ] Start your manager program. Then start three peer processes that each register with the mananger
+- [ ] Have one peer issue a setup-dht command to build a DHT of size n = 3 using the YYYY = 1950
+      dataset. This should output the number of records stored at each peer in the ring and finish by sending a
+      dht-complete to the manager.
+
+For the end-hosts, consider using general{3|4|5}.asu.edu, the machines on the racks in BYENG 217, or
+installing your application on VMs on a LAN you configure in CloudLab, or using any other end-hosts available
+to you for the demo.
+
+Your video will require at least four (4) windows open: one for the manager, and one for each peer. Ensure
+that the font size in each window is large enough to read!
+
+Be sure that the output of your commands are a well-labelled trace of the messages transmitted and
+received between processes so that it is easy to follow what is happening in your DHT application program.
 
 **_Refer to the pdf for the detailed versions_**
+
+**_Graceful termination of your application is not required at this time._**
