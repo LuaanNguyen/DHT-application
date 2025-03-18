@@ -100,3 +100,54 @@ received between processes so that it is easy to follow what is happening in you
 **_Refer to the pdf for the detailed versions_**
 
 **_Graceful termination of your application is not required at this time._**
+
+## Reproduce Milestone
+
+This is step by step on reproducing milestone.
+
+### Start DHT Manager
+
+```
+python3 dht_manager.py 12345
+```
+
+### On 3 different terminal windows, run reach peer with the same port as manager
+
+```
+python3 dht_peer localhost 12345
+```
+
+### Register each peer
+
+```
+# terminal 1
+register peer1 1237.0.0.1 8001 8002
+
+# terminal 2
+register peer2 1237.0.0.1 8003 8004
+
+# terminal 3
+register peer3 1237.0.0.1 8005 8006
+```
+
+### Set up DHT
+
+Peer1 sends `setup-dht` to the manager. The manager then proceeds to check and peer1 is now able to set up the ring by communicating with other peers.
+
+```
+# terminal 1
+setup-dht peer1 3 1950
+```
+
+If everything works correctly, you'll see logs in the manager showing the DHT setup process and completion.
+
+### DHT complete
+
+```
+# terminal 1
+dht-complete peer1
+```
+
+You should see a receipt ("SUCCESS") of a dht-complete indicates that the leader has completed all the steps required to set up the DHT.
+
+## TO DOS for Final Submmission (TBD)

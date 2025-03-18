@@ -90,3 +90,35 @@
 ► 2025-03-17 11:15:39,563 - WARNING - Unknown command received from ('127.0.0.1', 50386)
 ► 2025-03-17 11:15:43,929 - INFO - Server shutting down
 ► 2025-03-17 11:15:43,929 - INFO - Server socket closed
+► 2025-03-17 20:54:17,570 - INFO - Server started on port 12345
+► 2025-03-17 20:54:37,153 - INFO - Received message from ('127.0.0.1', 54171): register peer1 127.0.0.1 8001 8002
+► 2025-03-17 20:54:37,154 - INFO - Successfully registered client: peer1 at 127.0.0.1 with m_port=8001, p_port=8002.
+► 2025-03-17 20:54:37,154 - INFO - Current registered peers:
+► 2025-03-17 20:54:37,154 - INFO -   ✅ peer1: client_state.FREE
+► 2025-03-17 20:54:43,004 - INFO - Received message from ('127.0.0.1', 63026): register peer2 127.0.0.1 8003 8004
+► 2025-03-17 20:54:43,004 - INFO - Successfully registered client: peer2 at 127.0.0.1 with m_port=8003, p_port=8004.
+► 2025-03-17 20:54:43,005 - INFO - Current registered peers:
+► 2025-03-17 20:54:43,005 - INFO -   ✅ peer1: client_state.FREE
+► 2025-03-17 20:54:43,005 - INFO -   ✅ peer2: client_state.FREE
+► 2025-03-17 20:54:48,704 - INFO - Received message from ('127.0.0.1', 52350): register peer3 127.0.0.1 8005 8006
+► 2025-03-17 20:54:48,704 - INFO - Successfully registered client: peer3 at 127.0.0.1 with m_port=8005, p_port=8006.
+► 2025-03-17 20:54:48,704 - INFO - Current registered peers:
+► 2025-03-17 20:54:48,704 - INFO -   ✅ peer1: client_state.FREE
+► 2025-03-17 20:54:48,704 - INFO -   ✅ peer2: client_state.FREE
+► 2025-03-17 20:54:48,704 - INFO -   ✅ peer3: client_state.FREE
+► 2025-03-17 20:54:56,592 - INFO - Received message from ('127.0.0.1', 54171): setup-dht peer1 3 1950
+► 2025-03-17 20:54:56,592 - INFO - Adding peer peer2 to DHT
+► 2025-03-17 20:54:56,592 - INFO - Adding peer peer3 to DHT
+► 2025-03-17 20:54:56,593 - INFO - DHT setup with leader peer1 and 3 total peers
+► 2025-03-17 20:54:56,593 - INFO - Current registered peers:
+► 2025-03-17 20:54:56,593 - INFO -   ✅ peer1: client_state.LEADER
+► 2025-03-17 20:54:56,593 - INFO -   ✅ peer2: client_state.INDHT
+► 2025-03-17 20:54:56,593 - INFO -   ✅ peer3: client_state.INDHT
+► 2025-03-17 20:54:56,593 - INFO - Received message from ('127.0.0.1', 54171): get_neighbor_info 1
+► 2025-03-17 20:54:56,594 - INFO - Received message from ('127.0.0.1', 54171): get_neighbor_info 1
+► 2025-03-17 20:54:56,595 - INFO - Received message from ('127.0.0.1', 54171): get_neighbor_info 2
+► 2025-03-17 20:54:56,595 - INFO - Received message from ('127.0.0.1', 54171): get_neighbor_info 2
+► 2025-03-17 20:54:56,596 - INFO - Received message from ('127.0.0.1', 54171): dht-complete peer1
+► 2025-03-17 20:54:56,596 - INFO - DHT Setup completed by leader peer1
+► 2025-03-17 21:06:14,106 - INFO - Received message from ('127.0.0.1', 54171): dht-complete peer1
+► 2025-03-17 21:06:14,106 - INFO - DHT Setup completed by leader peer1
