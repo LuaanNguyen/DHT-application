@@ -1,0 +1,4 @@
+event_id,state,year,month_name,event_type,cz_type,cz_name,injuries_direct,injuries_indirect,deaths_direct,deaths_indirect,damage_property,damage_crops,tor_f_scale
+40006,TEXAS,1999,January,Thunderstorm Wind,C,MIAMI,8,10,5,2,12.00K,8.00K,EF1
+40007,FLORIDA,1999,September,Flash Flood,M,NEW YORK CITY,3,6,2,5,7.00K,15.00K,EF0
+40008,CALIFORNIA,1999,April,Hurricane (Typhoon),Z,RICHMOND,9,11,3,6,30.00K,10.00K,EF4
