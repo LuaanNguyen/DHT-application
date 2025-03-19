@@ -121,13 +121,13 @@ python3 dht_peer localhost 12345
 
 ```
 # terminal 1
-register peer1 1237.0.0.1 8001 8002
+register peer1 127.0.0.1 8001 8002
 
 # terminal 2
-register peer2 1237.0.0.1 8003 8004
+register peer2 127.0.0.1 8003 8004
 
 # terminal 3
-register peer3 1237.0.0.1 8005 8006
+register peer3 127.0.0.1 8005 8006
 ```
 
 ### Set up DHT
