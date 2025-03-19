@@ -1,0 +1,4 @@
+event_id,state,year,month_name,event_type,cz_type,cz_name,injuries_direct,injuries_indirect,deaths_direct,deaths_indirect,damage_property,damage_crops,tor_f_scale
+40003,CALIFORNIA,1998,February,Hurricane (Typhoon),M,NEW YORK CITY,2,4,6,2,46.00K,35.00K,EF4
+40004,FLORIDA,1998,July,Winter Storm,C,RICHMOND,13,17,7,0,11.00K,5.00K,EF5
+40005,VIRGINIA,1998,October,Tornado,Z,LOS ANGELES,10,3,1,4,5.00K,20.00K,EF3

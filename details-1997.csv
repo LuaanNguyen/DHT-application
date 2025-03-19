@@ -1,0 +1,4 @@
+event_id,state,year,month_name,event_type,cz_type,cz_name,injuries_direct,injuries_indirect,deaths_direct,deaths_indirect,damage_property,damage_crops,tor_f_scale
+40000,NEW YORK,1997,May,Thunderstorm Wind,C,RICHMOND,15,5,8,6,4.00K,27.00K,EF2
+40001,CALIFORNIA,1997,July,Flash Flood,Z,NEW YORK CITY,16,14,4,7,16.00K,14.00K,EF5
+40002,TEXAS,1997,February,Hurricane (Typhoon),C,RICHMOND,5,20,4,8,4.00K,2.00K,EF5
