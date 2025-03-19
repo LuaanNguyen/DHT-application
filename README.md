@@ -8,9 +8,10 @@
 
 📆 Midestone due: `Sunday 03/23/2025`
 
-📆 Full project due: `04/04/2025`
+📆 Full project due: `Friday 04/04/2025`
 
-📌 Design Doc: [CSE434: Socket Project](https://docs.google.com/document/d/1zdzy2W98iVG3k-rULQHCNX07EMCQG1knNZorXkv003U/edit?tab=t.0)  
+📌 Documentation: [Documentation](https://docs.google.com/document/d/1zdzy2W98iVG3k-rULQHCNX07EMCQG1knNZorXkv003U/edit?tab=t.0)  
+📌 Design Doc: [CSE434: Socket Project](https://docs.google.com/document/d/1zIXYn8LTUxaovb8iLyP6x7aYPeaWQDtc4o6muHAUQH4/edit?tab=t.0#heading=h.mz71e5s6w1lg)  
 📌 Time-space Diagram: [Time-space Diagram](https://docs.google.com/presentation/d/1ufCHWC4uRkZ89WrBdrQZOXyu7C4mGx7TVxSi8UaxVyE/edit#slide=id.p)  
 📌 Video Demo: (TBD)  
 
@@ -61,9 +62,9 @@ For the milestone deadline, you are to implement the following commands to the m
 and `dht-complete`. This also involves implementation of commands that may be issued among peers associated
 with these commands.
 
-- [ ] register
-- [ ] setup-dht
-- [ ] dht-complete
+- [x] register
+- [x] setup-dht
+- [x] dht-complete
 
 1. Design document in PDF format (50%). Describe the design of your DHT application pro
 
