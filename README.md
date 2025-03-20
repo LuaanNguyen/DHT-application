@@ -75,7 +75,7 @@ with these commands.
 - [ ] Provide a a link to your video demo and ensure that the link is accessible to our graders. In addition, give
       a list of timestamps in your video at which each step 3(a)-3(d) is demonstrated.
 
-2. Code and documentation (25%). Submit your well-documented source code implementing the milestone of
+2. [x] Code and documentation (25%). Submit your well-documented source code implementing the milestone of
    your DHT application.
 
 3. Video demo (25%). Upload a video of length at most 7 minutes to YouTube with no splicing or edits, with audio
@@ -88,9 +88,9 @@ with these commands.
       dataset. This should output the number of records stored at each peer in the ring and finish by sending a
       dht-complete to the manager.
 
-For the end-hosts, consider using general{3|4|5}.asu.edu, the machines on the racks in BYENG 217, or
+- [x] For the end-hosts, consider using general{3|4|5}.asu.edu, the machines on the racks in BYENG 217, or
 installing your application on VMs on a LAN you configure in CloudLab, or using any other end-hosts available
-to you for the demo.
+to you for the demo. (We use AWS EC2)
 
 Your video will require at least four (4) windows open: one for the manager, and one for each peer. Ensure
 that the font size in each window is large enough to read!
@@ -102,18 +102,39 @@ received between processes so that it is easy to follow what is happening in you
 
 **_Graceful termination of your application is not required at this time._**
 
-## Reproduce Milestone
+
+## Reproduce Milestone 🎯
 
 This is step by step on reproducing milestone.
 
-### Start DHT Manager
+### Initialize DHT Manager Program
 
+In your local computer, run:
 ```
 python3 dht_manager.py 12345
 ```
 
-### On 3 different terminal windows, run reach peer with the same port as manager
+or 
 
+For milestone, connect to your EC2 instance since we need to run the program on 2 distinct end hosts: 
+```
+ssh -i <your_pem_key> <your_EC2_public_IP> # SSH into your EC2 Instance 
+git clone https://github.com/LuaanNguyen/DHT-application.git
+cd DHT-application
+```
+
+If your EC2 distro is debian, you can run these commands to install neccessary depedencies:
+```
+sudo apt install python3
+python3 -m venv venv
+source venv/bin/activate # For Linux/Debian
+pip install -r requirements.txt
+python3 dht_manager.py 12345
+```
+
+### Initialize Peer Program
+
+In your local computer, on 3 different terminal windows, run reach peer with the same port as manager (`12345` in this case):
 ```
 python3 dht_peer localhost 12345
 ```

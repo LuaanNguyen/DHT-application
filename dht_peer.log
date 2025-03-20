@@ -140,3 +140,91 @@
 ► 2025-03-17 20:54:56,596 - INFO - DHT completion response: SUCCESS
 ► 2025-03-17 21:06:14,105 - INFO - Sent to manager: dht-complete peer1
 ► 2025-03-17 21:06:14,107 - INFO - Received from manager: SUCCESS
+► 2025-03-17 21:08:27,262 - INFO - Peer terminated by user
+► 2025-03-17 21:08:27,263 - INFO - Peer shutdown complete
+► 2025-03-17 21:08:27,686 - INFO - Peer terminated by user
+► 2025-03-17 21:08:27,686 - INFO - Peer shutdown complete
+► 2025-03-17 21:08:28,373 - INFO - Peer terminated by user
+► 2025-03-17 21:08:28,377 - INFO - Peer shutdown complete
+► 2025-03-18 15:28:27,042 - INFO - Connected to manager at localhost:12345
+► 2025-03-18 15:28:34,252 - INFO - Connected to manager at localhost:12345
+► 2025-03-18 15:28:43,234 - INFO - Connected to manager at localhost:12345
+► 2025-03-18 15:29:18,730 - INFO - Sent to manager: register peer1 1237.0.0.1 8001 8002
+► 2025-03-18 15:29:18,732 - INFO - Received from manager: FAILURE
+► 2025-03-18 15:29:35,527 - INFO - Sent to manager: register peer1 1237.0.0.1 8001 8002[D
+► 2025-03-18 15:29:35,530 - INFO - Received from manager: FAILURE
+► 2025-03-18 15:29:46,869 - INFO - Sent to manager: register peer1 1237.0.0.1 8001 8002
+► 2025-03-18 15:29:46,870 - INFO - Received from manager: FAILURE
+► 2025-03-18 15:30:13,730 - INFO - Sent to manager: register peer1 1237.0.0.1 8001 8002[D[D[
+► 2025-03-18 15:30:13,731 - INFO - Received from manager: FAILURE
+► 2025-03-18 15:30:22,204 - INFO - Sent to manager: register peer1 127.0.0.1 8001 8002
+► 2025-03-18 15:30:22,205 - INFO - Received from manager: SUCCESS
+► 2025-03-18 15:30:22,205 - INFO - Peer socket bound to port 8002
+► 2025-03-18 15:30:39,121 - INFO - Sent to manager: register peer2 127.0.0.1 8003 8004
+► 2025-03-18 15:30:39,122 - INFO - Received from manager: SUCCESS
+► 2025-03-18 15:30:39,123 - INFO - Peer socket bound to port 8004
+► 2025-03-18 15:30:52,303 - INFO - Sent to manager: register peer3 127.0.0.1 8005 8006
+► 2025-03-18 15:30:52,303 - INFO - Received from manager: SUCCESS
+► 2025-03-18 15:30:52,304 - INFO - Peer socket bound to port 8006
+► 2025-03-18 15:31:25,398 - INFO - Sent to manager: setup-dht peer1 3 1950
+► 2025-03-18 15:31:25,399 - INFO - Received from manager: SUCCESS
+► 2025-03-18 15:31:25,400 - INFO - Using data file: details-1950.csv
+► 2025-03-18 15:31:25,400 - INFO - Getting neighbor info: get_neighbor_info 1
+► 2025-03-18 15:31:25,400 - INFO - Neighbor info response: 127.0.0.1 8004
+► 2025-03-18 15:31:25,400 - INFO - Right neighbor: ID=1, IP=127.0.0.1, Port=8004
+► 2025-03-18 15:31:25,400 - INFO - Assigning IDs to peers...
+► 2025-03-18 15:31:25,401 - INFO - Setting up peer with ID 1
+► 2025-03-18 15:31:25,401 - INFO - Sending to peer 1: 1 3 127.0.0.1 8006
+► 2025-03-18 15:31:25,402 - INFO - Setting up peer with ID 2
+► 2025-03-18 15:31:25,402 - INFO - Sending to peer 2: 2 3 0.0.0.0 8002
+► 2025-03-18 15:31:25,402 - INFO - Finished assigning IDs to all peers
+► 2025-03-18 15:31:25,402 - INFO - Sending dht-complete to manager: dht-complete peer1
+► 2025-03-18 15:31:25,403 - INFO - DHT completion response: SUCCESS
+► 2025-03-18 15:31:50,910 - INFO - Sent to manager: dht-complete peer1
+► 2025-03-18 15:31:50,910 - INFO - Received from manager: SUCCESS
+► 2025-03-18 15:32:00,087 - INFO - User requested exit
+► 2025-03-18 15:32:00,087 - INFO - Peer shutdown complete
+► 2025-03-18 15:32:01,921 - INFO - User requested exit
+► 2025-03-18 15:32:01,922 - INFO - Peer shutdown complete
+► 2025-03-18 15:32:03,174 - INFO - User requested exit
+► 2025-03-18 15:32:03,175 - INFO - Peer shutdown complete
+► 2025-03-19 20:16:54,755 - INFO - Connected to manager at 52.14.43.87:12345
+► 2025-03-19 20:16:56,995 - INFO - Sent to manager: hello
+► 2025-03-19 20:17:10,893 - INFO - Peer terminated by user
+► 2025-03-19 20:17:10,894 - INFO - Peer shutdown complete
+► 2025-03-19 20:17:12,230 - INFO - Connected to manager at 52.14.43.87:12345
+► 2025-03-19 20:17:40,090 - INFO - Sent to manager: hello
+► 2025-03-19 20:17:41,910 - INFO - Peer terminated by user
+► 2025-03-19 20:17:41,911 - INFO - Peer shutdown complete
+► 2025-03-19 20:19:48,650 - INFO - Connected to manager at 52.14.43.87:12345
+► 2025-03-19 20:19:50,268 - INFO - Sent to manager: hello
+► 2025-03-19 20:19:50,339 - INFO - Received from manager: Unknown command
+► 2025-03-19 20:21:13,873 - INFO - Connected to manager at 52.14.43.87:12345
+► 2025-03-19 20:21:15,129 - INFO - Connected to manager at 52.14.43.87:12345
+► 2025-03-19 20:21:19,773 - INFO - Sent to manager: register peer1 127.0.0.1 8001 8002
+► 2025-03-19 20:21:19,842 - INFO - Received from manager: SUCCESS
+► 2025-03-19 20:21:19,843 - INFO - Peer socket bound to port 8002
+► 2025-03-19 20:21:23,944 - INFO - Sent to manager: register peer2 127.0.0.1 8003 8004
+► 2025-03-19 20:21:24,016 - INFO - Received from manager: SUCCESS
+► 2025-03-19 20:21:24,018 - INFO - Peer socket bound to port 8004
+► 2025-03-19 20:21:27,387 - INFO - Sent to manager: register peer3 127.0.0.1 8005 8006
+► 2025-03-19 20:21:27,457 - INFO - Received from manager: SUCCESS
+► 2025-03-19 20:21:27,458 - INFO - Peer socket bound to port 8006
+► 2025-03-19 20:21:33,857 - INFO - Sent to manager: setup-dht peer1 3 1950
+► 2025-03-19 20:21:33,927 - INFO - Received from manager: SUCCESS
+► 2025-03-19 20:21:33,927 - INFO - Using data file: details-1950.csv
+► 2025-03-19 20:21:33,927 - INFO - Getting neighbor info: get_neighbor_info 1
+► 2025-03-19 20:21:33,990 - INFO - Neighbor info response: 127.0.0.1 8004
+► 2025-03-19 20:21:33,991 - INFO - Right neighbor: ID=1, IP=127.0.0.1, Port=8004
+► 2025-03-19 20:21:33,991 - INFO - Assigning IDs to peers...
+► 2025-03-19 20:21:33,991 - INFO - Setting up peer with ID 1
+► 2025-03-19 20:21:34,125 - INFO - Sending to peer 1: 1 3 127.0.0.1 8006
+► 2025-03-19 20:21:34,125 - INFO - Setting up peer with ID 2
+► 2025-03-19 20:21:34,196 - INFO - Sending to peer 2: 2 3 0.0.0.0 8002
+► 2025-03-19 20:21:34,196 - INFO - Finished assigning IDs to all peers
+► 2025-03-19 20:21:34,196 - INFO - Sending dht-complete to manager: dht-complete peer1
+► 2025-03-19 20:21:34,260 - INFO - DHT completion response: SUCCESS
+► 2025-03-19 20:21:37,984 - INFO - Sent to manager: dht-complete peer1
+► 2025-03-19 20:21:38,068 - INFO - Received from manager: SUCCESS
+► 2025-03-19 20:33:36,848 - INFO - Peer terminated by user
+► 2025-03-19 20:33:36,852 - INFO - Peer shutdown complete
