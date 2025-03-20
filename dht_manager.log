@@ -122,3 +122,29 @@
 ► 2025-03-17 20:54:56,596 - INFO - DHT Setup completed by leader peer1
 ► 2025-03-17 21:06:14,106 - INFO - Received message from ('127.0.0.1', 54171): dht-complete peer1
 ► 2025-03-17 21:06:14,106 - INFO - DHT Setup completed by leader peer1
+►➡️ 2025-03-20 12:11:23,982 - INFO - Server started on port 12345
+►➡️  2025-03-20 12:11:32,824 - INFO - Server started on port 12345
+➡️  2025-03-20 12:11:47,433 - INFO - Server started on port 12345
+
+➡️  2025-03-20 12:12:03,903 - INFO - Server started on port 12345
+
+➡️  2025-03-20 12:12:55,644 - INFO - Server started on port 12345
+
+
+➡️  2025-03-20 12:16:06,546 - INFO - Server started on port 12345
+
+
+➡️  2025-03-20 12:16:25,774 - INFO - Received message from ('127.0.0.1', 55077): hi
+
+
+➡️  2025-03-20 12:16:25,775 - WARNING - Unknown command received from ('127.0.0.1', 55077)
+
+➡️  2025-03-20 12:16:45,860 - INFO - Server started on port 12345
+➡️  2025-03-20 12:17:13,099 - INFO - Received message from ('127.0.0.1', 49459): hi
+➡️  2025-03-20 12:17:13,100 - WARNING - Unknown command received from ('127.0.0.1', 49459)
+➡️  2025-03-20 12:17:33,428 - INFO - Received message from ('127.0.0.1', 58953): hi
+➡️  2025-03-20 12:17:33,428 - WARNING - Unknown command received from ('127.0.0.1', 58953)
+➡️  2025-03-20 12:17:35,979 - INFO - Received message from ('127.0.0.1', 58952): ??
+➡️  2025-03-20 12:17:35,979 - WARNING - Unknown command received from ('127.0.0.1', 58952)
+➡️  2025-03-20 12:17:42,613 - INFO - Received message from ('127.0.0.1', 58951): ??
+➡️  2025-03-20 12:17:42,614 - WARNING - Unknown command received from ('127.0.0.1', 58951)
