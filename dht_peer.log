@@ -140,3 +140,27 @@
 ► 2025-03-17 20:54:56,596 - INFO - DHT completion response: SUCCESS
 ► 2025-03-17 21:06:14,105 - INFO - Sent to manager: dht-complete peer1
 ► 2025-03-17 21:06:14,107 - INFO - Received from manager: SUCCESS
+► 2025-03-20 12:14:09,278 - INFO - ✅ Connected to manager at localhost:12345
+► 2025-03-20 12:14:59,948 - INFO - ✅ Connected to manager at localhost:12345
+► 2025-03-20 12:15:38,551 - INFO - ✅ Connected to manager at localhost:12346
+► 2025-03-20 12:16:22,341 - INFO - ✅ Connected to manager at localhost:12345
+► 2025-03-20 12:16:25,774 - INFO - 📩 Sent to manager: hi
+► 2025-03-20 12:16:25,775 - INFO - 📩 Received from manager: Unknown command
+► 2025-03-20 12:16:52,233 - INFO - ✅ Connected to manager at localhost:12345
+► 2025-03-20 12:17:00,494 - INFO - ✅ Connected to manager at localhost:12343
+► 2025-03-20 12:17:05,189 - INFO - ✅ Connected to manager at localhost:12347
+► 2025-03-20 12:17:07,478 - INFO - 📩 Sent to manager: hi
+► 2025-03-20 12:17:07,479 - ERROR - ⚠️ Error processing command: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+► 2025-03-20 12:17:10,902 - INFO - 📩 Sent to manager: hu
+► 2025-03-20 12:17:10,902 - ERROR - ⚠️ Error processing command: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+► 2025-03-20 12:17:13,099 - INFO - 📩 Sent to manager: hi
+► 2025-03-20 12:17:13,100 - INFO - 📩 Received from manager: Unknown command
+► 2025-03-20 12:17:22,776 - INFO - ✅ Connected to manager at localhost:12345
+► 2025-03-20 12:17:24,999 - INFO - ✅ Connected to manager at localhost:12345
+► 2025-03-20 12:17:26,914 - INFO - ✅ Connected to manager at localhost:12345
+► 2025-03-20 12:17:33,428 - INFO - 📩 Sent to manager: hi
+► 2025-03-20 12:17:33,428 - INFO - 📩 Received from manager: Unknown command
+► 2025-03-20 12:17:35,979 - INFO - 📩 Sent to manager: ??
+► 2025-03-20 12:17:35,979 - INFO - 📩 Received from manager: Unknown command
+► 2025-03-20 12:17:42,613 - INFO - 📩 Sent to manager: ??
+► 2025-03-20 12:17:42,614 - INFO - 📩 Received from manager: Unknown command
