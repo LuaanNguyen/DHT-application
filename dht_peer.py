@@ -17,7 +17,7 @@ import logging
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
     level=logging.INFO,
-    format='► %(asctime)s - %(levelname)s - %(message)s',
+    format='►  %(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         # Log to file dht_peer.log + added 'utf-8' for fixing window error
         logging.FileHandler('dht_peer.log', encoding='utf-8'),
