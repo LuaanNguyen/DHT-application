@@ -13,7 +13,7 @@
 📌 Documentation: [Documentation](https://docs.google.com/document/d/1zdzy2W98iVG3k-rULQHCNX07EMCQG1knNZorXkv003U/edit?tab=t.0)  
 📌 Design Doc: [CSE434: Socket Project](https://docs.google.com/document/d/1zIXYn8LTUxaovb8iLyP6x7aYPeaWQDtc4o6muHAUQH4/edit?tab=t.0#heading=h.mz71e5s6w1lg)  
 📌 Time-space Diagram: [Time-space Diagram](https://docs.google.com/presentation/d/1ufCHWC4uRkZ89WrBdrQZOXyu7C4mGx7TVxSi8UaxVyE/edit#slide=id.p)  
-📌 Video Demo: (TBD)  
+📌 Video Demo: [Video](https://youtu.be/R7nA6OKfetA)       
 
 💽 Storm Event Database: [NOAA's storm events database](https://www.ncdc.noaa.gov/stormevents/)
 

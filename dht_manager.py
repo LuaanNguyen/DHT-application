@@ -7,7 +7,6 @@ Prof. Bharatesh Chakravarthi
 
 dht_manager.py
 """
-
 from socket import *
 import sys
 from enum import Enum
@@ -26,14 +25,14 @@ socket_array = [] # List to track peer sockets
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
     level=logging.INFO,  # Set logging level
-    format='► %(asctime)s - %(levelname)s - %(message)s',  # Set log message format
+    format='➡️  %(asctime)s - %(levelname)s - %(message)s',  # Set log message format
     handlers=[
-        logging.FileHandler('dht_manager.log'),  # Log to file dht_manager.log
+        # Log to file dht_manager.log + added 'utf-8' for fixing window error
+        logging.FileHandler('dht_manager.log', encoding='utf-8'),  
         logging.StreamHandler()  # Log to console
     ]
 )
 logger = logging.getLogger(__name__)
-
 
 # ============== CLIENT STATE ENUM =============== #
 class client_state(Enum):
@@ -56,7 +55,6 @@ def print_all_peers():
             # Assuming info is a list with state at index 3
             logger.info(f"  ✅ {name}: {info[3]}")
 
-
 # ============== HELPER COMMAND: gets neighbor info =============== #
 def get_neighbor_info(message, client_address):
     command = message.split(" ")
@@ -70,7 +68,6 @@ def get_neighbor_info(message, client_address):
 
     response_message = str(ip_address) + " " + str(port_number)
     serverSocket.sendto(response_message.encode(), client_address)
-
 
 # ============== DHT COMMAND: setup-dht =============== #
 def setup_DHT(client_message, client_address):
@@ -122,8 +119,7 @@ def setup_DHT(client_message, client_address):
     # Return success
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), client_address)
-    
-    
+       
 # ============== DHT COMMAND: setup-dht =============== #
 def dht_complete(client_message, client_address):
     global DHT_set_up
@@ -206,7 +202,6 @@ def register_client(client_message, clientAddress):
     # Log current registered peers
     print_all_peers()
 
-
 # ============== MAIN =============== #
 def main():
     if len(sys.argv) != 2:
@@ -228,8 +223,8 @@ def main():
     serverSocket.bind(('', serverPort))
     
     # Log server starting
-    print("✨ ================== DHT Manager ==================== ✨")
-    print("===== TO EXIT THE PROGRAM, SIMPLY DO CRTL + C =====")
+    print("✨ =================== DHT Manager =================== ✨")
+    print("✨ ===== TO EXIT THE PROGRAM, SIMPLY DO CRTL + C ===== ✨")
     logger.info(f"Server started on port {serverPort}")
 
     try:
@@ -259,7 +254,6 @@ def main():
     finally:
         serverSocket.close()
         logger.info("Server socket closed")
-
 
 if __name__ == "__main__":
     main()
