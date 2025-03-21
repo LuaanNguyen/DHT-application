@@ -140,6 +140,7 @@
 ► 2025-03-17 20:54:56,596 - INFO - DHT completion response: SUCCESS
 ► 2025-03-17 21:06:14,105 - INFO - Sent to manager: dht-complete peer1
 ► 2025-03-17 21:06:14,107 - INFO - Received from manager: SUCCESS
+
 ► 2025-03-17 21:08:27,262 - INFO - Peer terminated by user
 ► 2025-03-17 21:08:27,263 - INFO - Peer shutdown complete
 ► 2025-03-17 21:08:27,686 - INFO - Peer terminated by user
@@ -228,3 +229,4 @@
 ► 2025-03-19 20:21:38,068 - INFO - Received from manager: SUCCESS
 ► 2025-03-19 20:33:36,848 - INFO - Peer terminated by user
 ► 2025-03-19 20:33:36,852 - INFO - Peer shutdown complete
+
