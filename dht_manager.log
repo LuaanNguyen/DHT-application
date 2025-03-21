@@ -122,29 +122,49 @@
 ► 2025-03-17 20:54:56,596 - INFO - DHT Setup completed by leader peer1
 ► 2025-03-17 21:06:14,106 - INFO - Received message from ('127.0.0.1', 54171): dht-complete peer1
 ► 2025-03-17 21:06:14,106 - INFO - DHT Setup completed by leader peer1
-►➡️ 2025-03-20 12:11:23,982 - INFO - Server started on port 12345
-►➡️  2025-03-20 12:11:32,824 - INFO - Server started on port 12345
-➡️  2025-03-20 12:11:47,433 - INFO - Server started on port 12345
-
-➡️  2025-03-20 12:12:03,903 - INFO - Server started on port 12345
-
-➡️  2025-03-20 12:12:55,644 - INFO - Server started on port 12345
-
-
-➡️  2025-03-20 12:16:06,546 - INFO - Server started on port 12345
-
-
-➡️  2025-03-20 12:16:25,774 - INFO - Received message from ('127.0.0.1', 55077): hi
-
-
-➡️  2025-03-20 12:16:25,775 - WARNING - Unknown command received from ('127.0.0.1', 55077)
-
-➡️  2025-03-20 12:16:45,860 - INFO - Server started on port 12345
-➡️  2025-03-20 12:17:13,099 - INFO - Received message from ('127.0.0.1', 49459): hi
-➡️  2025-03-20 12:17:13,100 - WARNING - Unknown command received from ('127.0.0.1', 49459)
-➡️  2025-03-20 12:17:33,428 - INFO - Received message from ('127.0.0.1', 58953): hi
-➡️  2025-03-20 12:17:33,428 - WARNING - Unknown command received from ('127.0.0.1', 58953)
-➡️  2025-03-20 12:17:35,979 - INFO - Received message from ('127.0.0.1', 58952): ??
-➡️  2025-03-20 12:17:35,979 - WARNING - Unknown command received from ('127.0.0.1', 58952)
-➡️  2025-03-20 12:17:42,613 - INFO - Received message from ('127.0.0.1', 58951): ??
-➡️  2025-03-20 12:17:42,614 - WARNING - Unknown command received from ('127.0.0.1', 58951)
+► 2025-03-17 21:08:29,648 - INFO - Server shutting down
+► 2025-03-17 21:08:29,648 - INFO - Server socket closed
+► 2025-03-18 15:28:12,098 - INFO - Server started on port 12345
+► 2025-03-18 15:29:18,731 - INFO - Received message from ('127.0.0.1', 55674): register peer1 1237.0.0.1 8001 8002
+► 2025-03-18 15:29:18,731 - WARNING - Invalid IP address: 1237.0.0.1
+► 2025-03-18 15:29:18,731 - ERROR - Registration failed from ('127.0.0.1', 55674): Invalid command format
+► 2025-03-18 15:29:35,528 - INFO - Received message from ('127.0.0.1', 55674): register peer1 1237.0.0.1 8001 8002[D
+► 2025-03-18 15:29:35,529 - WARNING - Invalid IP address: 1237.0.0.1
+► 2025-03-18 15:29:35,530 - ERROR - Registration failed from ('127.0.0.1', 55674): Invalid command format
+► 2025-03-18 15:29:46,869 - INFO - Received message from ('127.0.0.1', 55674): register peer1 1237.0.0.1 8001 8002
+► 2025-03-18 15:29:46,869 - WARNING - Invalid IP address: 1237.0.0.1
+► 2025-03-18 15:29:46,870 - ERROR - Registration failed from ('127.0.0.1', 55674): Invalid command format
+► 2025-03-18 15:30:13,731 - INFO - Received message from ('127.0.0.1', 55674): register peer1 1237.0.0.1 8001 8002[D[D[
+► 2025-03-18 15:30:13,731 - WARNING - Invalid IP address: 1237.0.0.1
+► 2025-03-18 15:30:13,731 - ERROR - Registration failed from ('127.0.0.1', 55674): Invalid command format
+► 2025-03-18 15:30:22,204 - INFO - Received message from ('127.0.0.1', 55674): register peer1 127.0.0.1 8001 8002
+► 2025-03-18 15:30:22,205 - INFO - Successfully registered client: peer1 at 127.0.0.1 with m_port=8001, p_port=8002.
+► 2025-03-18 15:30:22,205 - INFO - Current registered peers:
+► 2025-03-18 15:30:22,205 - INFO -   ✅ peer1: client_state.FREE
+► 2025-03-18 15:30:39,121 - INFO - Received message from ('127.0.0.1', 55066): register peer2 127.0.0.1 8003 8004
+► 2025-03-18 15:30:39,121 - INFO - Successfully registered client: peer2 at 127.0.0.1 with m_port=8003, p_port=8004.
+► 2025-03-18 15:30:39,121 - INFO - Current registered peers:
+► 2025-03-18 15:30:39,121 - INFO -   ✅ peer1: client_state.FREE
+► 2025-03-18 15:30:39,121 - INFO -   ✅ peer2: client_state.FREE
+► 2025-03-18 15:30:52,302 - INFO - Received message from ('127.0.0.1', 56776): register peer3 127.0.0.1 8005 8006
+► 2025-03-18 15:30:52,303 - INFO - Successfully registered client: peer3 at 127.0.0.1 with m_port=8005, p_port=8006.
+► 2025-03-18 15:30:52,303 - INFO - Current registered peers:
+► 2025-03-18 15:30:52,303 - INFO -   ✅ peer1: client_state.FREE
+► 2025-03-18 15:30:52,303 - INFO -   ✅ peer2: client_state.FREE
+► 2025-03-18 15:30:52,303 - INFO -   ✅ peer3: client_state.FREE
+► 2025-03-18 15:31:25,398 - INFO - Received message from ('127.0.0.1', 55674): setup-dht peer1 3 1950
+► 2025-03-18 15:31:25,399 - INFO - Adding peer peer2 to DHT
+► 2025-03-18 15:31:25,399 - INFO - Adding peer peer3 to DHT
+► 2025-03-18 15:31:25,399 - INFO - DHT setup with leader peer1 and 3 total peers
+► 2025-03-18 15:31:25,399 - INFO - Current registered peers:
+► 2025-03-18 15:31:25,399 - INFO -   ✅ peer1: client_state.LEADER
+► 2025-03-18 15:31:25,399 - INFO -   ✅ peer2: client_state.INDHT
+► 2025-03-18 15:31:25,399 - INFO -   ✅ peer3: client_state.INDHT
+► 2025-03-18 15:31:25,400 - INFO - Received message from ('127.0.0.1', 55674): get_neighbor_info 1
+► 2025-03-18 15:31:25,401 - INFO - Received message from ('127.0.0.1', 55674): get_neighbor_info 1
+► 2025-03-18 15:31:25,401 - INFO - Received message from ('127.0.0.1', 55674): get_neighbor_info 2
+► 2025-03-18 15:31:25,402 - INFO - Received message from ('127.0.0.1', 55674): get_neighbor_info 2
+► 2025-03-18 15:31:25,402 - INFO - Received message from ('127.0.0.1', 55674): dht-complete peer1
+► 2025-03-18 15:31:25,403 - INFO - DHT Setup completed by leader peer1
+► 2025-03-18 15:31:50,910 - INFO - Received message from ('127.0.0.1', 55674): dht-complete peer1
+► 2025-03-18 15:31:50,910 - INFO - DHT Setup completed by leader peer1
