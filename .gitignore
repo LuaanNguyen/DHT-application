@@ -1,3 +1,6 @@
 .vscode/
 venv/
 .idea/
+dht_manager.log
+dht_peer.log
+__pycache__/
