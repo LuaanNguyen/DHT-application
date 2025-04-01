@@ -12,15 +12,17 @@ import sys
 from enum import Enum
 import ipaddress
 import logging
+import random
 
 # Import validation functions from the new module
 from validation_utils import check_register_command, IP_address_valid, check_setupDHT
 
 # ============== GLOBAL VARIABLES =============== #
 client_dictionary = {}  # Global dictionary to store client information
+participating_peers = {} # Global dictionary to track peers in the DHT
 serverSocket = None  # Global socket variable
-DHT_set_up = False # Global bool to track whether DHT is set up or not
-socket_array = [] # List to track peer sockets
+DHT_set_up = False  # Global bool to track whether DHT is set up or not
+socket_array = []  # List to track peer sockets
 
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
@@ -28,24 +30,86 @@ logging.basicConfig(
     format='➡️  %(asctime)s - %(levelname)s - %(message)s',  # Set log message format
     handlers=[
         # Log to file dht_manager.log + added 'utf-8' for fixing window error
-        logging.FileHandler('dht_manager.log', encoding='utf-8'),  
+        logging.FileHandler('dht_manager.log', encoding='utf-8'),
         logging.StreamHandler()  # Log to console
     ]
 )
 logger = logging.getLogger(__name__)
 
+
 # ============== CLIENT STATE ENUM =============== #
 class client_state(Enum):
-    FREE = 1 # A peer is able to participate in any capacity
-    LEADER = 2 # A peer that leads the construction of the DHT
-    INDHT = 3 #A peer that is one of the members of the DHT
-    
+    FREE = 1  # A peer is able to participate in any capacity
+    LEADER = 2  # A peer that leads the construction of the DHT
+    INDHT = 3  # A peer that is one of the members of the DHT
+
+# ============== DEREGISTER =============== #
+
+
+def deregister_peer(client_message, client_address):
+    command = client_message.split(" ")
+    if not command[1] in client_dictionary:
+        logger.warning(f"Peer {command[1]} not registered")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return False
+
+    peer_state = client_dictionary[str(command[1])]["state"]
+    if peer_state == client_state.FREE:
+        client_response = "SUCCESS"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return True
+    else:
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return True
+
+    return False
+
+
+# ============== QUERY-DHT =============== #
+def respond_to_query(client_message, client_address):
+    # this is duplicated code from validation_utils (check where the peer is in DHT)
+    command = client_message.split(" ")
+    if not command[1] in client_dictionary:
+        logger.warning(f"Peer {command[1]} not registered")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return False
+
+    # Check if the DHT has been set up first before proceeding
+    if not DHT_set_up:
+        logger.warning("The DHT has not been set up yet. Set up the DHT before querying.")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return False
+
+    # lastly, see if the peer state is free (that means it's not in the DHT)
+    curr_peer_state = client_dictionary[str(command[1])]["state"]
+    if curr_peer_state == client_state.FREE:
+        logger.warning("This peer is not registered.")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return False
+
+    # Otherwise, select a random peer that is inside the DHT to start query process
+
+    participating_peers_keys = list(participating_peers.keys())
+    initial_peer = random.choice(participating_peers_keys)
+    client_response = "SUCCESS"
+    # client_response = "SUCCESS " + str(participating_peers[initial_peer])
+
+    client_response = client_response + " " + participating_peers[initial_peer]["ip_addr"]
+    client_response = client_response + " " + participating_peers[initial_peer]["p_port"]
+    serverSocket.sendto(client_response.encode(), client_address)
+    logger.info("Successfully randomly selected a peer to start query process")
+
 # ============== HELPER COMMAND: Print registered peers =============== #
 def print_all_peers():
     if len(client_dictionary) <= 0:
         logger.info("No currently registered peers 💻")
-        return 
-        
+        return
+
     logger.info("Current registered peers:")
     for name, info in client_dictionary.items():
         # Check if info is a dictionary or a list
@@ -54,6 +118,7 @@ def print_all_peers():
         else:
             # Assuming info is a list with state at index 3
             logger.info(f"  ✅ {name}: {info[3]}")
+
 
 # ============== HELPER COMMAND: gets neighbor info =============== #
 def get_neighbor_info(message, client_address):
@@ -69,10 +134,11 @@ def get_neighbor_info(message, client_address):
     response_message = str(ip_address) + " " + str(port_number)
     serverSocket.sendto(response_message.encode(), client_address)
 
+
 # ============== DHT COMMAND: setup-dht =============== #
 def setup_DHT(client_message, client_address):
     global DHT_set_up
-        
+
     if not check_setupDHT(client_message, client_dictionary, DHT_set_up):
         logger.warning("Setup DHT failed: Invalid command format")
         client_response = "FAILURE"
@@ -89,11 +155,15 @@ def setup_DHT(client_message, client_address):
 
     # Update leader's state
     client_dictionary[peer_name]["state"] = client_state.LEADER
-    
+
     # Add leader to socket array (index 0)
     leader_info = client_dictionary[peer_name]
     socket_array.append((leader_info["ip_addr"], int(leader_info["p_port"])))
-    
+    participating_peers[peer_name] = {
+        "ip_addr": client_dictionary[peer_name]["ip_addr"],
+        "p_port":client_dictionary[peer_name]["p_port"]
+    }
+
     # Select n-1 other peers
     curr_count = 1
     for key in client_dictionary:
@@ -101,56 +171,62 @@ def setup_DHT(client_message, client_address):
             logger.info(f"Adding peer {key} to DHT")
             client_dictionary[key]["state"] = client_state.INDHT
             socket_array.append((client_dictionary[key]["ip_addr"], int(client_dictionary[key]["p_port"])))
+            participating_peers[key] = {
+                "ip_addr": client_dictionary[key]["ip_addr"],
+                "p_port": client_dictionary[key]["p_port"]
+            }
             curr_count += 1
         if curr_count >= n:
             break
-    
+
     # Log DHT setup
     logger.info(f"DHT setup with leader {peer_name} and {n} total peers")
     print_all_peers()
-    
+
     # Add after parsing command_args
     if len(client_dictionary) < n:
         logger.warning(f"Not enough peers registered. Need {n}, have {len(client_dictionary)}")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return
-    
+
     # Return success
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), client_address)
-       
+
+
 # ============== DHT COMMAND: setup-dht =============== #
 def dht_complete(client_message, client_address):
     global DHT_set_up
-    
-    # Parse command 
+
+    # Parse command
     command = client_message.split(" ")
     if len(command) != 2:
         logger.warning("Invalid dht-complete format")
         client_response = "FAILTURE Invalid Format"
         serverSocket.sendto(client_response.encode(), client_address)
         return
-    
+
     peer_name = command[1]
-    
+
     # Validate sender is leader
     if peer_name not in client_dictionary:
         logger.warning(f"Unknown peer {peer_name} sent dht-complete")
         client_response = "FAILURE Unknow Peer"
         serverSocket.sendto(client_response.encode(), client_address)
-        return 
+        return
 
     if client_dictionary[peer_name]["state"] != client_state.LEADER:
         logger.warning(f"Non-leader peer {peer_name} sent dht-complete")
         client_response = "FAILURE Non-leader Peer"
         serverSocket.sendto(client_response.encode(), client_address)
-        return 
+        return
 
-    # Otherwise, mark DHT setup as complete, return success
+        # Otherwise, mark DHT setup as complete, return success
     logger.info(f"DHT Setup completed by leader {peer_name}")
-    client_response="SUCCESS"
+    client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), client_address)
+
 
 # ============== DHT COMMAND: register =============== #
 def register_client(client_message, clientAddress):
@@ -159,15 +235,15 @@ def register_client(client_message, clientAddress):
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), clientAddress)
         return
-    
+
     # parse command
     command = client_message.split(" ")
     peer_name = command[1]
     ip_addr = command[2]
     m_port = command[3]
     p_port = command[4]
-    
-    # Check if ports are unique for this IP address 
+
+    # Check if ports are unique for this IP address
     for name, info in client_dictionary.items():
         if isinstance(info, dict):
             # Dictionary format
@@ -185,7 +261,7 @@ def register_client(client_message, clientAddress):
                     client_response = "FAILURE"
                     serverSocket.sendto(client_response.encode(), clientAddress)
                     return
-    
+
     # If port is unique, store client information
     client_dictionary[peer_name] = {
         "ip_addr": ip_addr,
@@ -194,13 +270,14 @@ def register_client(client_message, clientAddress):
         "state": client_state.FREE,
         "address": clientAddress,
     }
-    
+
     logger.info(f"Successfully registered client: {peer_name} at {ip_addr} with m_port={m_port}, p_port={p_port}.")
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), clientAddress)
-    
+
     # Log current registered peers
     print_all_peers()
+
 
 # ============== MAIN =============== #
 def main():
@@ -219,9 +296,9 @@ def main():
 
     # Create UDP socket
     global serverSocket
-    serverSocket = socket(AF_INET, SOCK_DGRAM) #IPv4, UDP
+    serverSocket = socket(AF_INET, SOCK_DGRAM)  # IPv4, UDP
     serverSocket.bind(('', serverPort))
-    
+
     # Log server starting
     print("✨ =================== DHT Manager =================== ✨")
     print("✨ ===== TO EXIT THE PROGRAM, SIMPLY DO CRTL + C ===== ✨")
@@ -235,14 +312,19 @@ def main():
             logger.info(f"Received message from {clientAddress}: {message}")
 
             # Handle different commands
-            if "register" in message:
-                register_client(message, clientAddress)
+            if "deregister" in message:
+                deregister_peer(message, clientAddress)
             elif "setup-dht" in message:
                 setup_DHT(message, clientAddress)
             elif "dht-complete" in message:
                 dht_complete(message, clientAddress)
             elif "get_neighbor_info" in message:
                 get_neighbor_info(message, clientAddress)
+            elif "query_dht" in message:
+                print("In progress")
+                respond_to_query(message, clientAddress)
+            elif "register" in message:
+                register_client(message, clientAddress)
             else:
                 # Send error response back to client
                 error_msg = "Unknown command"
@@ -254,6 +336,7 @@ def main():
     finally:
         serverSocket.close()
         logger.info("Server socket closed")
+
 
 if __name__ == "__main__":
     main()
