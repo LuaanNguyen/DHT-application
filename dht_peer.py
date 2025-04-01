@@ -15,6 +15,7 @@ import select
 import logging
 from sympy import *
 import csv
+import random
 
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
@@ -36,6 +37,127 @@ DHT = []
 DHT_size = -1
 input_file = ""
 
+
+def start_search_process(start_ip_addr, start_p_port, event_id, unvisited_ids, id_seq):
+    print("Entered search process...")
+    if start_ip_addr == peer_socket.getpeername[0]:
+        print("Search successfully at the current peer making a query")
+        find_pos = calculate_pos(event_id)
+        find_id = calculate_id(find_pos)
+
+        if find_id == id:
+            search_record = DHT[find_pos]
+            if search_record == None:
+                print("The record was not found at node " + str(id))
+            elif int(search_record[0]) != event_id:
+                print("The record was not found at node " + str(id))
+            else:
+                print("SUCCESSFULLY FOUND THE STORM WITH EVENT_ID: " + str(search_record))
+        else:
+            id_seq.append(id)
+            unvisited_ids.remove(id)
+            find_event(event_id, unvisited_ids, id_seq)
+    else:
+        print("Passing along the query")
+        start_message = "start-query " + str(event_id)
+        peer_socket.sendto(start_message, (start_ip_addr, start_p_port))
+
+
+def pass_event_along(event_id, unvisited_ids, id_seq):
+    next_contact_node = find_random_node(unvisited_ids, id_seq)
+    message = "find_event " + str(event_id) + " " + "unvisit"
+    for i in unvisited_ids:
+        message = message + " " + str(i)
+
+    message = message + " id_seq"
+    for i in id_seq:
+        message = message + " " + str(i)
+
+    print("Passing the event along..." + message)
+
+    peer_query = f"get_neighbor_info {next_contact_node}"
+    clientSocket.send(peer_query.encode())
+    response_message = clientSocket.recv(2048).decode()
+
+    if "FAILURE" in response_message:
+        logger.error(f"⚠️ Failed to get info for peer {next_contact_node}")
+        return
+
+    peer_info = response_message.split(" ")
+    peer_ip_address = peer_info[0]
+    peer_port = int(peer_info[1])
+
+    peer_socket.sendto(message, (peer_ip_address, peer_port))
+
+
+# find-event is going to forward the query request hot-potato style to other peers
+def find_event(event_id, unvisited_ids, id_seq):
+    find_pos = calculate_pos(event_id)
+    find_id = calculate_id(find_pos)
+
+    # find id == global id, we're in luck, because we can just check the DHT stored locally
+    if find_id == id:
+        search_record = DHT[find_pos]
+
+        # there's 3 possibilities: there exists a record there that matches, no record, or record that doesn't match
+        if search_record == None:
+            print("The record was not found at node " + str(id))
+        elif int(search_record[0]) != event_id:
+            print("The record was not found at node " + str(id))
+        elif int(search_record[0]) == event_id:
+            print("The record was found at node " + str(id))
+            # after we find the node, I am going to package it up and send it to the manager
+            send_record = "SUCCESS " + search_record.encode()
+
+            clientSocket.send(send_record)
+        else:
+            print("Unaccounted possibility")
+
+    else:
+        # otherwise, we're going to consult visited ID's and find a random node to send to
+        print("In progress")
+
+        next_contact_node = find_random_node(unvisited_ids, id_seq)
+
+        # by how I defined find_random_node, if -1 is returned, we've searched all nodes, found nothing
+        if next_contact_node == -1:
+            # the failure message is going to be sent to the server
+            fail_message = "FAILURE, finished searching all nodes"
+            clientSocket.send(fail_message)
+        else:
+            peer_query = f"get_neighbor_info {next_contact_node}"
+            clientSocket.send(peer_query.encode())
+            response_message = clientSocket.recv(2048).decode()
+
+            if "FAILURE" in response_message:
+                logger.error(f"⚠️ Failed to get info for peer {next_contact_node}")
+                return
+
+            # here's the message I'm going to send to the peer
+            message = "find_event " + str(event_id) + " " + str(unvisited_ids) + " " + str(id_seq)
+
+            peer_info = response_message.split(" ")
+            peer_ip_address = peer_info[0]
+            peer_port = int(peer_info[1])
+
+            # now, with the peer's info, I'm going to send the request
+            peer_socket.sendto(message, (peer_ip_address, peer_port))
+
+
+
+def find_random_node(unvisited_ids, id_seq):
+    # first, I'm going to add the current ID to the ID_seq
+    id_seq.append(id)
+
+    # and then, I'm going to remove id from unvisited ids
+    unvisited_ids.remove(id)
+
+    # if the unvisited_ids is empty...we've checked everything, so return special value -1
+    if unvisited_ids.empty():
+        return -1
+
+    # and then, I'm going to find the next node to contact
+    return random.choice(unvisited_ids)
 
 # store_leader is going to initialize the storing process
 def store_leader(filename):
@@ -136,9 +258,6 @@ def set_DHT_size(line_count):
     global DHT_size
     DHT = [None] * start
     DHT_size = start
-
-    # Likely unnecessary
-    # return start
 
 
 # Counts the number of entries stored in the CSV file
@@ -301,8 +420,33 @@ def main():
                     mult_response = data_str.split(" ")
 
                     # Process the peer message
-                    # If "store" isn't in the message, then the leader is currently assigning an id to the node
-                    if "store" not in data_str:
+
+                    if "find_event" in data_str:
+                        print(data_str)
+                        for i in data_str:
+                            print(i)
+                    elif "store" in data_str:
+                        # we can initialize the DHT now
+                        global DHT_size
+                        global DHT
+                        if DHT_size == -1:
+                            print(mult_response[2:16])
+                            DHT_size = int(mult_response[1])
+                            DHT = [None] * DHT_size
+
+                        #print("All passed this stage")
+                        curr_record = mult_response[2:16]
+                        forward_record(curr_record)
+                    elif "start-query" in data_str:
+
+                        query_event_id = int(mult_response[1])
+                        nonvisit_ids = []
+                        search_process = []
+                        for i in range(ring_size):
+                            nonvisit_ids.append(i)
+
+                        start_search_process(peer_socket.getpeername()[0], peer_socket.getpeername()[1], query_event_id, nonvisit_ids, search_process)
+                    else:
                         if len(mult_response) >= 4:
                             global right_neighbor
                             id = int(mult_response[0])
@@ -313,28 +457,11 @@ def main():
                             logger.info(
                                 f"Right neighbor: ID={right_neighbor_id}, IP={mult_response[2]}, Port={mult_response[3]}")
 
-                    else:
-                        # we can initialize the DHT now
-                        global DHT_size
-                        global DHT
-                        if DHT_size == -1:
-                            # all the prints are for error checking/debugging
-                            # print("1) Error occured in setting the DHT table up")
-                            # print(mult_response[0])
-                            # print(mult_response[1])
-                            print(mult_response[2:16])
-                            DHT_size = int(mult_response[1])
-                            DHT = [None] * DHT_size
-
-                        #print("All passed this stage")
-                        curr_record = mult_response[2:16]
-                        forward_record(curr_record)
-
                 except Exception as e:
                     logger.error(f"⚠️ Error processing peer message: {e}")
 
             # query the client to send in an input message and send it
-            message = input("Type in a message (type exit to terminate the connection): ")
+            message = input("Type in a message (type exit to terminate and other key to check the peer port): ")
 
             # if the message is exit, exit the loop
             if message == "exit":
@@ -351,7 +478,7 @@ def main():
 
             # Process different commands
             try:
-                if "register" in message:
+                if "register" in message and "deregister" not in message:
                     # Handle register command
                     receivedMessage = clientSocket.recv(2048).decode()
                     logger.info(f"📩 Received from manager: {receivedMessage}")
@@ -370,6 +497,14 @@ def main():
                         except Exception as e:
                             logger.error(f"⚠️ Error binding peer socket: {e}")
                             peer_socket = None
+                elif "deregister" in message:
+                    receivedMessage = clientSocket.recv(2048).decode()
+                    logger.info(f"📩 Received from manager: {receivedMessage}")
+                    print(receivedMessage)
+
+                    if "SUCCESS" in receivedMessage:
+                        print("Now terminating this client process...")
+                        sys.exit(1)
 
                 elif "setup-dht" in message:
                     # Handle setup-dht command
@@ -415,6 +550,27 @@ def main():
                             assign_id()
                         else:
                             logger.error(f"⚠️ Invalid neighbor info: {receivedMessage}")
+                elif "query_dht" in message:
+                    # search process will list the order of the nodes that were visited
+
+                    receivedMessage = clientSocket.recv(2048).decode()
+                    logger.info(f"📩 Received from manager: {receivedMessage}")
+                    print(receivedMessage)
+                    search_process = []
+                    nonvisit_ids = []
+                    for i in range(ring_size):
+                        nonvisit_ids.append(i)
+                    fields = receivedMessage.split(" ")
+                    if "SUCCESS" in receivedMessage:
+                        print("Successful initialization of query request")
+                        response_p_port = fields[2]
+                        response_ip_addr = fields[1]
+                        queried_event_id = input("Type in the event_id you wish to search for: ")
+                        start_search_process(response_ip_addr, int(response_p_port), int(queried_event_id), nonvisit_ids
+                                             , search_process)
+
+                    else:
+                        print("Error")
 
                 else:
                     # Handle other commands
@@ -440,4 +596,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
