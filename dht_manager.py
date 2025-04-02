@@ -103,24 +103,29 @@ def teardown_dht(client_message, client_address):
 
 
 def deregister_peer(client_message, client_address):
+    # Parse the incoming message to extract the peer name
     command = client_message.split(" ")
+    
+    # Check if the peer exists in the client dictionary
     if not command[1] in client_dictionary:
         logger.warning(f"Peer {command[1]} not registered")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return False
 
+    # Retrieve the state of the peer
     peer_state = client_dictionary[str(command[1])]["state"]
+    
+    # If the peer is in a FREE state, deregistration is successful
     if peer_state == client_state.FREE:
         client_response = "SUCCESS"
         serverSocket.sendto(client_response.encode(), client_address)
         return True
     else:
+        # If the peer is not FREE, deregistration fails
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
-        return True
-
-    return False
+        return False
 
 
 # ============== QUERY-DHT =============== #
