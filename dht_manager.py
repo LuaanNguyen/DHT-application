@@ -47,46 +47,57 @@ class client_state(Enum):
 
 
 def teardown_complete(client_message, client_address):
+    # Parse the incoming message to extract the peer name
     command = client_message.split(" ")
+    
+    # Check if the peer exists in the client dictionary
     if not command[1] in client_dictionary:
         logger.warning(f"Peer {command[1]} not registered")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return False
 
+    # Check if the peer is the leader
     peer_state = client_dictionary[str(command[1])]["state"]
     if peer_state != client_state.LEADER:
         logger.warning(f"Peer {command[1]} is not the leader. Cannot initiate teardown.")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
     else:
+        # If the peer is the leader, update all peers' state to FREE
         logger.info(f"teardown-complete successfully received. Setting all peers' state to FREE")
         for key in client_dictionary:
             client_dictionary[key]["state"] = client_state.FREE
         client_response = "SUCCESS"
         serverSocket.sendto(client_response.encode(), client_address)
 
+
 def teardown_dht(client_message, client_address):
+    # Parse the incoming message to extract the peer name
     command = client_message.split(" ")
 
+    # Check if the peer exists in the client dictionary
     if not command[1] in client_dictionary:
         logger.warning(f"Peer {command[1]} not registered")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return False
 
+    # Check if the DHT has been set up before attempting teardown
     if not DHT_set_up:
         logger.warning(f"DHT has not been set up yet.")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return False
 
+    # Check if the peer is the leader
     peer_state = client_dictionary[str(command[1])]["state"]
     if peer_state != client_state.LEADER:
         logger.warning(f"Peer {command[1]} is not the leader. Cannot initiate teardown.")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
     else:
+        # If the peer is the leader, acknowledge the teardown request with SUCCESS
         client_response = "SUCCESS"
         serverSocket.sendto(client_response.encode(), client_address)
 
