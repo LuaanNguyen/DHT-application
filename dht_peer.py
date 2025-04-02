@@ -1,4 +1,4 @@
-"""
+
 Project Group 9
 Luan Nguyen, Somesh Harshavardhan Gopi Krishna, Sophia Gu, Kyongho Gong
 Arizona State University
@@ -30,12 +30,41 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ============== GLOBAL VARIABLES =============== #
+peer_name = ""
 id = -1
 right_neighbor = None
 ring_size = -1
 DHT = []
 DHT_size = -1
 input_file = ""
+
+# teardown will just erase all the details stored in the client process about the DHT
+def teardown():
+    global ring_size
+    global id
+    global DHT
+    global DHT_size
+    global input_file
+    global right_neighbor
+
+    if id == ring_size - 1:
+        ring_size = -1
+        id = -1
+        DHT = []
+        DHT_size = -1
+        input_file = ""
+        client_message = "Leader: all DHT entries deleted"
+        peer_socket.sendto(client_message.encode(), (right_neighbor[1], int(right_neighbor[2])))
+        right_neighbor = None
+    else:
+        ring_size = -1
+        id = -1
+        DHT = []
+        DHT_size = -1
+        input_file = ""
+        client_message = "peer-teardown"
+        peer_socket.sendto(client_message.encode(), (right_neighbor[1], int(right_neighbor[2])))
+        right_neighbor = None
 
 
 def start_search_process(start_ip_addr, start_p_port, event_id, unvisited_ids, id_seq):
@@ -204,10 +233,12 @@ def forward_record(record):
     print(record[3])
     print(record[4])
     print(record[5])'''
-
     event_id = int(record[0])
     pos = calculate_pos(event_id)
     node_id = calculate_id(pos)
+    print("The record should be stored at node " + str(node_id))
+    print("The record should be stored at position " + str(pos))
+
 
     # print("The event_id is " + str(event_id))
 
@@ -235,6 +266,7 @@ def forward_record(record):
     peer_socket.sendto(request.encode(), (right_neighbor_ip_addr, right_neighbor_port))
 
     return 0
+
 
 # calculate_id will calculate the node at which to store the weather record
 def calculate_id(pos):
@@ -314,7 +346,7 @@ def assign_id():
                 peer_neighbor_ip_address = peer_socket.getsockname()[0]
                 peer_neighbor_port = int(peer_socket.getsockname()[1])
 
-                response = f"{i} {ring_size} {peer_neighbor_ip_address} {peer_neighbor_port}"
+                response = f"{i} {ring_size} {peer_ip_address} {peer_neighbor_port}"
                 logger.info(f"📩 Sending to peer {i}: {response}")
                 peer_socket.sendto(response.encode(), (peer_ip_address, peer_port))
 
@@ -362,6 +394,9 @@ def assign_id():
     # Signal completion to manager
     dht_complete_message = f"✅ dht-complete {peer_name}"
     logger.info(f"📩 Sending dht-complete to manager: {dht_complete_message}")
+
+    # for error checking
+    print("The peer name is " + peer_name)
     clientSocket.send(dht_complete_message.encode())
     completion_response = clientSocket.recv(2048).decode()
     logger.info(f"✅ DHT completion response: {completion_response}")
@@ -371,7 +406,7 @@ def assign_id():
 
 # ============== MAIN =============== #
 def main():
-    global clientSocket, peer_socket, id, ring_size, right_neighbor, input_file, peer_name
+    global clientSocket, peer_socket, id, ring_size, right_neighbor, input_file, peer_name, DHT_size
 
     if len(sys.argv) != 3:
         logger.error("⚠️ Incorrect number of command line arguments")
@@ -396,7 +431,6 @@ def main():
     logger.info(f"✅ Connected to manager at {serverName}:{serverPort}")
 
     peer_socket = None
-    peer_name = ""
 
     # Instructions
     print("✨ ---------------- Available commands ----------------- ✨")
@@ -425,16 +459,32 @@ def main():
                         print(data_str)
                         for i in data_str:
                             print(i)
+                    elif "teardown" in data_str:
+                        print(data_str)
+                        teardown()
+
+                        # This is for checking everything has been destroyed correctly
+                        print("Ring size: " + str(ring_size))
+                        print("DHT_size: " + str(DHT_size))
+                        print("Input file: " + "<" + str(input_file) + ">")
+                    elif "Leader" in data_str:
+                        client_response = "teardown-complete " + peer_name
+                        clientSocket.send(client_response.encode())
+
+                        received_message = clientSocket.recv(2048).decode()
+                        logger.info(f"📩 Received from manager: {received_message}")
+                        print(received_message)
+
                     elif "store" in data_str:
                         # we can initialize the DHT now
-                        global DHT_size
+                        # global DHT_size
                         global DHT
                         if DHT_size == -1:
                             print(mult_response[2:16])
                             DHT_size = int(mult_response[1])
+                            print("DHT size: " + str(DHT_size))
                             DHT = [None] * DHT_size
 
-                        #print("All passed this stage")
                         curr_record = mult_response[2:16]
                         forward_record(curr_record)
                     elif "start-query" in data_str:
@@ -571,7 +621,12 @@ def main():
 
                     else:
                         print("Error")
-
+                elif "teardown" in message:
+                    receivedMessage = clientSocket.recv(2048).decode()
+                    print(receivedMessage)
+                    if "SUCCESS" in receivedMessage:
+                        print("Initiating teardown...")
+                        teardown()
                 else:
                     # Handle other commands
                     receivedMessage = clientSocket.recv(2048).decode()
