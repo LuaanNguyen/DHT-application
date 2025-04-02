@@ -20,6 +20,7 @@ from validation_utils import check_register_command, IP_address_valid, check_set
 # ============== GLOBAL VARIABLES =============== #
 client_dictionary = {}  # Global dictionary to store client information
 participating_peers = {} # Global dictionary to track peers in the DHT
+querying_peer = None # Global pair tracking the peer currently making a query
 serverSocket = None  # Global socket variable
 DHT_set_up = False  # Global bool to track whether DHT is set up or not
 socket_array = []  # List to track peer sockets
@@ -43,8 +44,26 @@ class client_state(Enum):
     LEADER = 2  # A peer that leads the construction of the DHT
     INDHT = 3  # A peer that is one of the members of the DHT
 
-# ============== DEREGISTER =============== #
 
+def respond_to_search_success(client_message):
+    command = client_message.split(" ")
+
+    # target_ip_addr = client_dictionary[querying_peer]["ip_addr"]
+    # target_port = int(client_dictionary[querying_peer]["m_port"])
+    #print(f"Send to {target_ip_addr}, at port {target_port}")
+    print(f"Querying peer data: {querying_peer[0]}, {querying_peer[0]}")
+    response = "SUCCESS: " + str(command[1:len(command)])
+    serverSocket.sendto(response.encode(), querying_peer)
+    return
+
+
+def respond_to_search_fail():
+    # target_ip_addr = client_dictionary[querying_peer]["ip_addr"]
+    # target_port = int(client_dictionary[querying_peer]["m_port"])
+    print(f"Querying peer data: {querying_peer[0]}, {querying_peer[0]}")
+    response = "FAILURE: A storm with the requested event_id does not exist in the file"
+    serverSocket.sendto(response.encode, querying_peer)
+    return
 
 def teardown_complete(client_message, client_address):
     command = client_message.split(" ")
@@ -60,10 +79,12 @@ def teardown_complete(client_message, client_address):
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
     else:
+        global DHT_set_up
         logger.info(f"teardown-complete successfully received. Setting all peers' state to FREE")
         for key in client_dictionary:
             client_dictionary[key]["state"] = client_state.FREE
         client_response = "SUCCESS"
+        DHT_set_up = False
         serverSocket.sendto(client_response.encode(), client_address)
 
 def teardown_dht(client_message, client_address):
@@ -113,9 +134,13 @@ def deregister_peer(client_message, client_address):
 
 
 # ============== QUERY-DHT =============== #
+
 def respond_to_query(client_message, client_address):
     # this is duplicated code from validation_utils (check where the peer is in DHT)
     command = client_message.split(" ")
+    if len(command) != 2:
+        logger.warning("Not enough arguments")
+        return
     if not command[1] in client_dictionary:
         logger.warning(f"Peer {command[1]} not registered")
         client_response = "FAILURE"
@@ -132,20 +157,23 @@ def respond_to_query(client_message, client_address):
     # lastly, see if the peer state is free (that means it's not in the DHT)
     curr_peer_state = client_dictionary[str(command[1])]["state"]
     if curr_peer_state == client_state.FREE:
-        logger.warning("This peer is not registered.")
+        logger.warning("This peer is not in the DHT.")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return False
 
     # Otherwise, select a random peer that is inside the DHT to start query process
+    global querying_peer
 
     participating_peers_keys = list(participating_peers.keys())
     initial_peer = random.choice(participating_peers_keys)
+    querying_peer = client_address
     client_response = "SUCCESS"
     # client_response = "SUCCESS " + str(participating_peers[initial_peer])
 
     client_response = client_response + " " + participating_peers[initial_peer]["ip_addr"]
     client_response = client_response + " " + participating_peers[initial_peer]["p_port"]
+    client_response = client_response + " " + str(initial_peer)
     serverSocket.sendto(client_response.encode(), client_address)
     logger.info("Successfully randomly selected a peer to start query process")
 
@@ -374,6 +402,10 @@ def main():
                 register_client(message, clientAddress)
             elif "teardown" in message:
                 teardown_dht(message, clientAddress)
+            elif "search-fail" in message:
+                respond_to_search_fail()
+            elif "search-success" in message:
+                respond_to_search_success(message)
             else:
                 # Send error response back to client
                 error_msg = "Unknown command"
