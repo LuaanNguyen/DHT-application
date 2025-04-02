@@ -46,6 +46,51 @@ class client_state(Enum):
 # ============== DEREGISTER =============== #
 
 
+def teardown_complete(client_message, client_address):
+    command = client_message.split(" ")
+    if not command[1] in client_dictionary:
+        logger.warning(f"Peer {command[1]} not registered")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return False
+
+    peer_state = client_dictionary[str(command[1])]["state"]
+    if peer_state != client_state.LEADER:
+        logger.warning(f"Peer {command[1]} is not the leader. Cannot initiate teardown.")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+    else:
+        logger.info(f"teardown-complete successfully received. Setting all peers' state to FREE")
+        for key in client_dictionary:
+            client_dictionary[key]["state"] = client_state.FREE
+        client_response = "SUCCESS"
+        serverSocket.sendto(client_response.encode(), client_address)
+
+def teardown_dht(client_message, client_address):
+    command = client_message.split(" ")
+
+    if not command[1] in client_dictionary:
+        logger.warning(f"Peer {command[1]} not registered")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return False
+
+    if not DHT_set_up:
+        logger.warning(f"DHT has not been set up yet.")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return False
+
+    peer_state = client_dictionary[str(command[1])]["state"]
+    if peer_state != client_state.LEADER:
+        logger.warning(f"Peer {command[1]} is not the leader. Cannot initiate teardown.")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+    else:
+        client_response = "SUCCESS"
+        serverSocket.sendto(client_response.encode(), client_address)
+
+
 def deregister_peer(client_message, client_address):
     command = client_message.split(" ")
     if not command[1] in client_dictionary:
@@ -201,18 +246,20 @@ def dht_complete(client_message, client_address):
 
     # Parse command
     command = client_message.split(" ")
-    if len(command) != 2:
+
+    # there's an extra space added at the end, so the length should really be 3
+    if len(command) != 3:
         logger.warning("Invalid dht-complete format")
-        client_response = "FAILTURE Invalid Format"
+        client_response = "FAILURE Invalid Format"
         serverSocket.sendto(client_response.encode(), client_address)
         return
 
-    peer_name = command[1]
+    peer_name = command[2]
 
     # Validate sender is leader
     if peer_name not in client_dictionary:
         logger.warning(f"Unknown peer {peer_name} sent dht-complete")
-        client_response = "FAILURE Unknow Peer"
+        client_response = "FAILURE Unknown Peer"
         serverSocket.sendto(client_response.encode(), client_address)
         return
 
@@ -222,7 +269,7 @@ def dht_complete(client_message, client_address):
         serverSocket.sendto(client_response.encode(), client_address)
         return
 
-        # Otherwise, mark DHT setup as complete, return success
+    # Otherwise, mark DHT setup as complete, return success
     logger.info(f"DHT Setup completed by leader {peer_name}")
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), client_address)
@@ -325,6 +372,8 @@ def main():
                 respond_to_query(message, clientAddress)
             elif "register" in message:
                 register_client(message, clientAddress)
+            elif "teardown" in message:
+                teardown_dht(message, clientAddress)
             else:
                 # Send error response back to client
                 error_msg = "Unknown command"
