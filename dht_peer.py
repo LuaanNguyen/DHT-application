@@ -1,4 +1,4 @@
-
+"""
 Project Group 9
 Luan Nguyen, Somesh Harshavardhan Gopi Krishna, Sophia Gu, Kyongho Gong
 Arizona State University
@@ -437,6 +437,13 @@ def main():
     print("  ✅ register 〈peer-name〉 〈IPv4-address〉 〈m-port〉 〈p-port〉")
     print("  ✅ setup-dht 〈peer-name〉 〈n〉 〈YYYY〉")
     print("  ✅ dht-complete 〈peer-name〉")
+    print("  ✅ query-dht <peer-name>")
+    print("  ✅ leave-dht <peer-name>")
+    print("  ✅ join-dht <peer-name>")
+    print("  ✅ dht-rebuilt <peer-name> <new-leader>")
+    print("  ✅ teardown-dht <peer-name>")
+    print("  ✅ teardown-complete <peer-name>")
+    print("  ✅ deregister <peer-name>")
     print("  ✅ exit")
     print("✨ ----------------------------------------------------- ✨")
 
