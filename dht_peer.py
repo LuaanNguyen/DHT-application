@@ -1,4 +1,4 @@
-
+"""
 Project Group 9
 Luan Nguyen, Somesh Harshavardhan Gopi Krishna, Sophia Gu, Kyongho Gong
 Arizona State University
@@ -68,32 +68,55 @@ def teardown():
 
 
 def start_search_process(start_ip_addr, start_p_port, event_id, unvisited_ids, id_seq):
+    global id
     print("Entered search process...")
-    if start_ip_addr == peer_socket.getpeername[0]:
+
+    # For error checking, delete later
+    print("the socket port number is: " + str(peer_socket.getsockname()[1]))
+    print("id is: " + str(id))
+    for i in unvisited_ids:
+        print(i)
+    print("\n")
+
+    if int(start_p_port) == int(peer_socket.getsockname()[1]):
         print("Search successfully at the current peer making a query")
         find_pos = calculate_pos(event_id)
+        print("The calculated position: " + str(find_pos))
         find_id = calculate_id(find_pos)
+        print("The calculated node: " + str(find_id))
 
         if find_id == id:
             search_record = DHT[find_pos]
             if search_record == None:
                 print("The record was not found at node " + str(id))
+                return_message = "search-fail"
             elif int(search_record[0]) != event_id:
                 print("The record was not found at node " + str(id))
+                return_message = "search-fail"
+
             else:
                 print("SUCCESSFULLY FOUND THE STORM WITH EVENT_ID: " + str(search_record))
+                return_message = "search-success " + str(search_record)
+
+            # may have to reconsider later but return for now
+            clientSocket.send(return_message.encode())
+            return
         else:
             id_seq.append(id)
+            # the printed errors are for error checking, delete later
+            print("Error 1 here")
             unvisited_ids.remove(id)
-            find_event(event_id, unvisited_ids, id_seq)
+            print("Error 2 here")
+            pass_event_along(event_id, unvisited_ids, id_seq)
     else:
         print("Passing along the query")
         start_message = "start-query " + str(event_id)
-        peer_socket.sendto(start_message, (start_ip_addr, start_p_port))
+        peer_socket.sendto(start_message.encode(), (start_ip_addr, start_p_port))
 
 
 def pass_event_along(event_id, unvisited_ids, id_seq):
     next_contact_node = find_random_node(unvisited_ids, id_seq)
+    print("The next node that will be queried is " + str(next_contact_node))
     message = "find_event " + str(event_id) + " " + "unvisit"
     for i in unvisited_ids:
         message = message + " " + str(i)
@@ -107,6 +130,7 @@ def pass_event_along(event_id, unvisited_ids, id_seq):
     peer_query = f"get_neighbor_info {next_contact_node}"
     clientSocket.send(peer_query.encode())
     response_message = clientSocket.recv(2048).decode()
+    print("Successfully received neighbor info")
 
     if "FAILURE" in response_message:
         logger.error(f"⚠️ Failed to get info for peer {next_contact_node}")
@@ -115,8 +139,10 @@ def pass_event_along(event_id, unvisited_ids, id_seq):
     peer_info = response_message.split(" ")
     peer_ip_address = peer_info[0]
     peer_port = int(peer_info[1])
+    print(f"Received peer_ip_address and peer_port is {peer_ip_address}, {peer_port}")
 
-    peer_socket.sendto(message, (peer_ip_address, peer_port))
+    print(f"Passing the event to: {peer_ip_address}, {peer_port}")
+    peer_socket.sendto(message.encode(), (peer_ip_address, peer_port))
 
 
 # find-event is going to forward the query request hot-potato style to other peers
@@ -124,6 +150,10 @@ def find_event(event_id, unvisited_ids, id_seq):
     find_pos = calculate_pos(event_id)
     find_id = calculate_id(find_pos)
 
+    # error checking, delete later
+    print("at node: " + str(id))
+    print("find_pos: " + str(find_pos))
+    print("find_id(id's node): " + str(find_id))
     # find id == global id, we're in luck, because we can just check the DHT stored locally
     if find_id == id:
         search_record = DHT[find_pos]
@@ -131,28 +161,35 @@ def find_event(event_id, unvisited_ids, id_seq):
         # there's 3 possibilities: there exists a record there that matches, no record, or record that doesn't match
         if search_record == None:
             print("The record was not found at node " + str(id))
+            send_record = "search-fail"
+            clientSocket.send(send_record.encode())
         elif int(search_record[0]) != event_id:
             print("The record was not found at node " + str(id))
+            send_record = "search-fail"
+            clientSocket.send(send_record.encode())
         elif int(search_record[0]) == event_id:
             print("The record was found at node " + str(id))
             # after we find the node, I am going to package it up and send it to the manager
-            send_record = "SUCCESS " + search_record.encode()
-
-            clientSocket.send(send_record)
+            send_record = "search-success " + str(search_record)
+            clientSocket.send(send_record.encode())
         else:
             print("Unaccounted possibility")
 
+        return
+
     else:
         # otherwise, we're going to consult visited ID's and find a random node to send to
-        print("In progress")
+        print("Sending the record to another random peer")
 
+        unvisited_ids.remove(id)
+        id_seq.append(id)
         next_contact_node = find_random_node(unvisited_ids, id_seq)
-
+        print("The next node that is going to be queried is: " + str(next_contact_node))
         # by how I defined find_random_node, if -1 is returned, we've searched all nodes, found nothing
         if next_contact_node == -1:
             # the failure message is going to be sent to the server
-            fail_message = "FAILURE, finished searching all nodes"
-            clientSocket.send(fail_message)
+            fail_message = "search-fail"
+            clientSocket.send(fail_message.encode())
         else:
             peer_query = f"get_neighbor_info {next_contact_node}"
             clientSocket.send(peer_query.encode())
@@ -163,26 +200,31 @@ def find_event(event_id, unvisited_ids, id_seq):
                 return
 
             # here's the message I'm going to send to the peer
-            message = "find_event " + str(event_id) + " " + str(unvisited_ids) + " " + str(id_seq)
+            message = "find_event " + str(event_id) + " " + "unvisit"
+            for i in unvisited_ids:
+                message = message + " " + str(i)
+
+            message = message + " id_seq"
+            for i in id_seq:
+                message = message + " " + str(i)
 
             peer_info = response_message.split(" ")
             peer_ip_address = peer_info[0]
             peer_port = int(peer_info[1])
 
             # now, with the peer's info, I'm going to send the request
-            peer_socket.sendto(message, (peer_ip_address, peer_port))
-
+            peer_socket.sendto(message.encode(), (peer_ip_address, peer_port))
 
 
 def find_random_node(unvisited_ids, id_seq):
     # first, I'm going to add the current ID to the ID_seq
-    id_seq.append(id)
+    # id_seq.append(id)
 
     # and then, I'm going to remove id from unvisited ids
-    unvisited_ids.remove(id)
+    # unvisited_ids.remove(id)
 
     # if the unvisited_ids is empty...we've checked everything, so return special value -1
-    if unvisited_ids.empty():
+    if len(unvisited_ids) == 0:
         return -1
 
     # and then, I'm going to find the next node to contact
@@ -457,8 +499,26 @@ def main():
 
                     if "find_event" in data_str:
                         print(data_str)
-                        for i in data_str:
+                        queried_id = mult_response[1]
+                        unvisit_ids = mult_response[mult_response.index("unvisit") + 1: mult_response.index("id_seq")]
+                        seq_id = mult_response[mult_response.index("id_seq") + 1:len(mult_response)]
+
+                        # for error checking, delete later
+                        print("Here are the unvisited nodes: ")
+                        for i in unvisit_ids:
                             print(i)
+
+                        print("Here are the sequence of nodes visited: ")
+                        for i in seq_id:
+                            print(i)
+
+                        int_unvisit_ids = list(map(int, unvisit_ids))
+                        int_seq_id = list(map(int, seq_id))
+
+                        # error checking
+                        print("Onto the next find_event call")
+                        find_event(int(queried_id), int_unvisit_ids, int_seq_id)
+
                     elif "teardown" in data_str:
                         print(data_str)
                         teardown()
@@ -495,7 +555,8 @@ def main():
                         for i in range(ring_size):
                             nonvisit_ids.append(i)
 
-                        start_search_process(peer_socket.getpeername()[0], peer_socket.getpeername()[1], query_event_id, nonvisit_ids, search_process)
+                        start_search_process(peer_socket.getsockname()[0], peer_socket.getsockname()[1], query_event_id,
+                                             nonvisit_ids, search_process)
                     else:
                         if len(mult_response) >= 4:
                             global right_neighbor
@@ -627,6 +688,10 @@ def main():
                     if "SUCCESS" in receivedMessage:
                         print("Initiating teardown...")
                         teardown()
+                elif "check-server-response" in message:
+                    receivedMessage = clientSocket.recv(2048).decode()
+                    logger.info(f"📩 Received from manager: {receivedMessage}")
+                    print(receivedMessage)
                 else:
                     # Handle other commands
                     receivedMessage = clientSocket.recv(2048).decode()
