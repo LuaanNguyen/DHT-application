@@ -625,9 +625,26 @@ def main():
                         queried_event_id = input("Type in the event_id you wish to search for: ")
                         start_search_process(response_ip_addr, int(response_p_port), int(queried_event_id), nonvisit_ids
                                              , search_process)
-
                     else:
                         print("Error")
+                # rhdrudgh cnrk qnqns
+                elif "leave-dht" in message:
+                    receivedMessage = clientSocket.recv(2048).decode()
+                    print(receivedMessage)
+                    # test
+                    if "SUCCESS" in receivedMessage:
+                        print("✅ Leave request accepted by manager.")
+                    else:
+                        print("❌ Leave request denied by manager.")
+                elif "dht-rebuilt" in message:
+                    receivedMessage = clientSocket.recv(2048).decode()
+                    print(receivedMessage)
+                    if "SUCCESS" in receivedMessage:
+                        print("🆗 DHT rebuild.")
+                        if id == 0:
+                            assign_id()
+                    else:
+                        print("❌ DHT fail to rebuild.")
                 elif "teardown" in message:
                     receivedMessage = clientSocket.recv(2048).decode()
                     print(receivedMessage)
