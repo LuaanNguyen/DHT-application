@@ -351,32 +351,53 @@ def leave_dht(client_message, client_address):
     command = client_message.split(" ")
     if len(command) != 2:
         logger.warning("📜  FORMAT: leave-dht <peer-name>")
-        serverSocket.sendto("FAILURE".encode(), client_address)
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
         return
 
     peer_name = command[1]
 
     if not DHT_set_up:
         logger.warning("❌  DHT not set up yet.")
-        serverSocket.sendto("FAILURE".encode(), client_address)
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
         return
 
     if peer_name not in client_dictionary:
         logger.warning(f"❌  Peer {peer_name} not registered.")
-        serverSocket.sendto("FAILURE".encode(), client_address)
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
         return
 
     state = client_dictionary[peer_name]["state"]
     if state not in [client_state.LEADER, client_state.INDHT]:
         logger.warning(f"❌  Peer {peer_name} not in DHT.")
-        serverSocket.sendto("FAILURE".encode(), client_address)
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
         return
 
     # Valid leave request
     leave_peer = peer_name
     logger.info(f"✅  Leave request accepted from peer: {peer_name}")
-    serverSocket.sendto("SUCCESS".encode(), client_address)
+    client_response = "SUCCESS"
+    serverSocket.sendto(client_response.encode(), client_address)
 
+    # reset-id
+    try:
+        idx = list(participating_peers.keys()).index(peer_name)
+        if idx < len(socket_array) - 1:
+            next_ip, next_port = socket_array[idx + 1]
+        else:
+            next_ip, next_port = socket_array[0]
+
+        reset_msg = f"reset-id {idx} {len(socket_array)} {next_ip} {next_port}"
+        peer_ip = client_dictionary[peer_name]["ip_addr"]
+        peer_pport = int(client_dictionary[peer_name]["p_port"])
+        peer_addr = (peer_ip, peer_pport)
+        logger.info(f"📩 Sending reset-id to peer {peer_name} at {peer_addr}: {reset_msg}")
+        serverSocket.sendto(reset_msg.encode(), peer_addr)
+    except Exception as e:
+        logger.error(f"⚠️ Failed to send reset-id: {e}")
     
 # ============== MANAGER COMMAND: join-dht =============== #
 # 1. check if the peer is FREE
@@ -395,8 +416,7 @@ def display_ring_structure():
             ring.append(peer)
     if ring:
         ring_str = " → ".join(ring + [ring[0]])
-        logger.info("🤖  Current Ring Structure:")
-        logger.info(f"  {ring_str}")
+        logger.info(f"🤖  Current Ring Structure: {ring_str}")
 
 # ============== MANAGER COMMAND: dht-rebuilt =============== #
 # 1. check if 'peer name' is equal to LEAVE or JOIN
@@ -418,35 +438,26 @@ def dht_rebuilt(client_message, client_address):
 
     if peer_name != leave_peer and peer_name != join_peer:
         logger.warning(f"❌  Unauthorized dht-rebuilt sender: {peer_name}")
-        serverSocket.sendto("FAILURE".encode(), client_address)
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
         return
 
     if new_leader not in client_dictionary:
         logger.warning(f"❌  Unknown new leader: {new_leader}")
-        serverSocket.sendto("FAILURE".encode(), client_address)
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
         return
 
     if new_leader == peer_name:
         logger.warning("❌  Leaving peer cannot be the new leader")
-        serverSocket.sendto("FAILURE".encode(), client_address)
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
         return
-
-    # Reset peer states
-    for peer in client_dictionary:
-        if peer == leave_peer:
-            continue
-        if peer == new_leader:
-            client_dictionary[peer]["state"] = client_state.LEADER
-        elif client_dictionary[peer]["state"] != client_state.FREE:
-            client_dictionary[peer]["state"] = client_state.INDHT
-
-    # Reset global state
-    leave_peer = None
-    join_peer = None
 
     logger.info(f"✅  [ DHT rebuilt ]    New leader: {new_leader}")
     display_ring_structure()
-    serverSocket.sendto("SUCCESS".encode(), client_address)
+    client_response = "SUCCESS"
+    serverSocket.sendto(client_response.encode(), client_address)
 
 # ============== MAIN =============== #
 def main():
