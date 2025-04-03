@@ -121,6 +121,8 @@ def pass_event_along(event_id, unvisited_ids, id_seq):
 
 # find-event is going to forward the query request hot-potato style to other peers
 def find_event(event_id, unvisited_ids, id_seq):
+    # Forwards the query in hot potato style to other peers
+
     find_pos = calculate_pos(event_id)
     find_id = calculate_id(find_pos)
 
@@ -221,24 +223,15 @@ def store_leader(filename):
         forward_record(row)
 
     # Probably need a more refined logger function; this just for me and error checking
-    print("FINISHED POPULATING THE DHT")
+    logger.info("FINISHED POPULATING THE DHT")
 
 
 def forward_record(record):
+    '''Forwards a record to be stored at another node'''
 
-    # all error handling/debugging
-    '''print(record[0])
-    print(record[1])
-    print(record[2])
-    print(record[3])
-    print(record[4])
-    print(record[5])'''
     event_id = int(record[0])
     pos = calculate_pos(event_id)
     node_id = calculate_id(pos)
-    print("The record should be stored at node " + str(node_id))
-    print("The record should be stored at position " + str(pos))
-
 
     # print("The event_id is " + str(event_id))
 
@@ -248,16 +241,14 @@ def forward_record(record):
         DHT[pos] = record
         # Note to self: make sure to log this interaction, in a neat manner, rather than messy print statements
         feedback = "Record with event_id " + str(record[0]) + " stored at node " + str(id) + " at pos " + str(pos)
-        print(feedback)
+        logger.info(feedback)
         return 0
 
     # Otherwise, we have to send the record to our next neighbor
     right_neighbor_ip_addr = right_neighbor[1]
     right_neighbor_port = right_neighbor[2]
 
-    # print("Error outside the if")
-    # okay, I'm gonna reformat the record...so that it's easier to send as a message
-    # print(len(record))
+    # Reformat the record so that it's easier to send
     string_record = str(record[0])
     for item in record[1:]:
         string_record = string_record + " " + str(item)
@@ -267,20 +258,19 @@ def forward_record(record):
 
     return 0
 
-
-# calculate_id will calculate the node at which to store the weather record
 def calculate_id(pos):
+    '''Calculate the node to store the weather record'''
     return pos % ring_size
 
 
-# Calculate pos will calculate the position in the local hash table to store record
 def calculate_pos(event_id):
+    """Calculate pos will calculate the position in the local hash table to store record"""
     global DHT_size
     return event_id % DHT_size
 
 
-# The DHT has to be the closest prime number greater than 2 * entries in CSV file
 def set_DHT_size(line_count):
+    """The DHT has to be the closest prime number greater than 2 * entries in CSV file"""
     start = (line_count * 2) + 1
 
     while not isprime(start):
@@ -292,7 +282,6 @@ def set_DHT_size(line_count):
     DHT_size = start
 
 
-# Counts the number of entries stored in the CSV file
 def count_line(filename):
     """Count the number of lines in a file (excluding header)"""
     try:
@@ -395,8 +384,6 @@ def assign_id():
     dht_complete_message = f"✅ dht-complete {peer_name}"
     logger.info(f"📩 Sending dht-complete to manager: {dht_complete_message}")
 
-    # for error checking
-    print("The peer name is " + peer_name)
     clientSocket.send(dht_complete_message.encode())
     completion_response = clientSocket.recv(2048).decode()
     logger.info(f"✅ DHT completion response: {completion_response}")
@@ -431,6 +418,7 @@ def main():
     logger.info(f"✅ Connected to manager at {serverName}:{serverPort}")
 
     peer_socket = None
+    check = False # check is used to see whether the user wants to check on the peer port's state
 
     # Instructions
     print("✨ ---------------- Available commands ----------------- ✨")
@@ -449,81 +437,92 @@ def main():
 
     try:
         while True:
-            '''Slight usability issue: the peer port is stuck behind the terminal prompt asking
-            for an input (completely my fault, my bad). I'm wondering if there's a way to interrupt
-            the terminal input prompt as soon as the peer port has something...'''
-            # if the peer socket has been initialized, we can check if it's received a message
-            if peer_socket is not None and check_udp_data(peer_socket):
-                try:
-                    data, addr = peer_socket.recvfrom(1024)
-                    data_str = data.decode()
-                    logger.info(f"Received data from {addr}: {data_str}")
-                    mult_response = data_str.split(" ")
+            # if the user requested to check on the peer port
+            if check:
+                # if the peer socket has been initialized, we can check if it's received a message
+                if peer_socket is not None and check_udp_data(peer_socket):
+                    try:
+                        data, addr = peer_socket.recvfrom(1024)
+                        data_str = data.decode()
+                        logger.info(f"Received data from {addr}: {data_str}")
+                        mult_response = data_str.split(" ")
 
-                    # Process the peer message
+                        # Process the message received at the peer port
 
-                    if "find_event" in data_str:
-                        print(data_str)
-                        for i in data_str:
-                            print(i)
-                    elif "teardown" in data_str:
-                        print(data_str)
-                        teardown()
+                        # if find_event in data_str, then we should search the DHT for the record
+                        if "find_event" in data_str:
+                            print(data_str)
+                            for i in data_str:
+                                print(i)
 
-                        # This is for checking everything has been destroyed correctly
-                        print("Ring size: " + str(ring_size))
-                        print("DHT_size: " + str(DHT_size))
-                        print("Input file: " + "<" + str(input_file) + ">")
-                    elif "Leader" in data_str:
-                        client_response = "teardown-complete " + peer_name
-                        clientSocket.send(client_response.encode())
+                        # if teardown in data_str, initiate teardown sequence
+                        elif "teardown" in data_str:
+                            print(data_str)
+                            teardown()
 
-                        received_message = clientSocket.recv(2048).decode()
-                        logger.info(f"📩 Received from manager: {received_message}")
-                        print(received_message)
+                            # Error checking, delete later
+                            print("Ring size: " + str(ring_size))
+                            print("DHT_size: " + str(DHT_size))
+                            print("Input file: " + "<" + str(input_file) + ">")
 
-                    elif "store" in data_str:
-                        # we can initialize the DHT now
-                        # global DHT_size
-                        global DHT
-                        if DHT_size == -1:
-                            print(mult_response[2:16])
-                            DHT_size = int(mult_response[1])
-                            print("DHT size: " + str(DHT_size))
-                            DHT = [None] * DHT_size
+                        # Once teardown is complete, the last peer notifies the leader, nd sends it to the manger
+                        elif "Leader" in data_str:
+                            client_response = "teardown-complete " + peer_name
+                            clientSocket.send(client_response.encode())
+                            received_message = clientSocket.recv(2048).decode()
+                            logger.info(f"📩 Received from manager: {received_message}")
+                            print(received_message)
 
-                        curr_record = mult_response[2:16]
-                        forward_record(curr_record)
-                    elif "start-query" in data_str:
+                        # if store is in the data_str, the leader is requesting the peer to store records
+                        elif "store" in data_str:
+                            global DHT
+                            if DHT_size == -1:
+                                print(mult_response[2:16])
+                                DHT_size = int(mult_response[1])
+                                print("DHT size: " + str(DHT_size))
+                                DHT = [None] * DHT_size
 
-                        query_event_id = int(mult_response[1])
-                        nonvisit_ids = []
-                        search_process = []
-                        for i in range(ring_size):
-                            nonvisit_ids.append(i)
+                            curr_record = mult_response[2:16]
+                            forward_record(curr_record)
+                        elif "start-query" in data_str:
 
-                        start_search_process(peer_socket.getpeername()[0], peer_socket.getpeername()[1], query_event_id, nonvisit_ids, search_process)
-                    else:
-                        if len(mult_response) >= 4:
-                            global right_neighbor
-                            id = int(mult_response[0])
-                            ring_size = int(mult_response[1])
-                            right_neighbor_id = (id + 1) % ring_size
-                            right_neighbor = (right_neighbor_id, mult_response[2], int(mult_response[3]))
-                            logger.info(f"Set peer ID to {id}, ring size to {ring_size}")
-                            logger.info(
-                                f"Right neighbor: ID={right_neighbor_id}, IP={mult_response[2]}, Port={mult_response[3]}")
+                            query_event_id = int(mult_response[1])
+                            nonvisit_ids = []
+                            search_process = []
+                            for i in range(ring_size):
+                                nonvisit_ids.append(i)
 
-                except Exception as e:
-                    logger.error(f"⚠️ Error processing peer message: {e}")
+                            start_search_process(peer_socket.getpeername()[0], peer_socket.getpeername()[1], query_event_id, nonvisit_ids, search_process)
+                        else:
+                            if len(mult_response) >= 4:
+                                global right_neighbor
+                                id = int(mult_response[0])
+                                ring_size = int(mult_response[1])
+                                right_neighbor_id = (id + 1) % ring_size
+                                right_neighbor = (right_neighbor_id, mult_response[2], int(mult_response[3]))
+                                logger.info(f"Set peer ID to {id}, ring size to {ring_size}")
+                                logger.info(
+                                    f"Right neighbor: ID={right_neighbor_id}, IP={mult_response[2]}, Port={mult_response[3]}")
+
+                    except Exception as e:
+                        logger.error(f"⚠️ Error processing peer message: {e}")
+                else:
+                    logger.info(f"No message has arrived at the peer port.")
+                check = False
 
             # query the client to send in an input message and send it
-            message = input("Type in a message (type exit to terminate and other key to check the peer port): ")
+            message = input("Type in a message (type exit to terminate and check to receive peer port's messages): ")
 
             # if the message is exit, exit the loop
             if message == "exit":
-                logger.info("🤖 User requested exit")
+                logger.info("🤖 User requested exit.")
                 break
+
+            # if message is check, check on the peer port
+            if message == "check":
+                logger.info("🤖 User requested to check UDP peer port.")
+                check = True
+                continue
 
             # Send message to manager
             try:
