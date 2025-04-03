@@ -511,6 +511,7 @@ def main():
                                 peer_socket.sendto(next_msg.encode(), (neighbor_ip, int(neighbor_port)))
                                 print(f"📩  Sent reset-id to neighbor {next_id}")
                     elif "start-query" in data_str:
+
                         query_event_id = int(mult_response[1])
                         nonvisit_ids = []
                         search_process = []
@@ -520,6 +521,7 @@ def main():
                         start_search_process(peer_socket.getpeername()[0], peer_socket.getpeername()[1], query_event_id, nonvisit_ids, search_process)
                     else:
                         if len(mult_response) >= 4:
+                            # global right_neighbor
                             id = int(mult_response[0])
                             ring_size = int(mult_response[1])
                             right_neighbor_id = (id + 1) % ring_size
