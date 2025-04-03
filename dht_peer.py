@@ -481,7 +481,6 @@ def main():
                         received_message = clientSocket.recv(2048).decode()
                         logger.info(f"📩 Received from manager: {received_message}")
                         print(received_message)
-
                     elif "store" in data_str:
                         # we can initialize the DHT now
                         # global DHT_size
@@ -494,8 +493,24 @@ def main():
 
                         curr_record = mult_response[2:16]
                         forward_record(curr_record)
-                    elif "start-query" in data_str:
+                    elif "reset-id" in data_str:
+                        parts = data_str.split(" ")
+                        if len(parts) >= 5:
+                            old_id = int(parts[1])
+                            ring_size = int(parts[2])
+                            neighbor_ip = parts[3]
+                            neighbor_port = int(parts[4])
 
+                            id = old_id
+                            right_neighbor = ((id + 1) % ring_size, neighbor_ip, int(neighbor_port))
+                            print(f"✅ [ reset-id ]  New ID: {id}, New neighbor: {right_neighbor}")
+
+                            if id != ring_size - 1:
+                                next_id = id + 1
+                                next_msg = f"reset-id {next_id} {ring_size} {neighbor_ip} {neighbor_port}"
+                                peer_socket.sendto(next_msg.encode(), (neighbor_ip, int(neighbor_port)))
+                                print(f"📩  Sent reset-id to neighbor {next_id}")
+                    elif "start-query" in data_str:
                         query_event_id = int(mult_response[1])
                         nonvisit_ids = []
                         search_process = []
@@ -505,7 +520,6 @@ def main():
                         start_search_process(peer_socket.getpeername()[0], peer_socket.getpeername()[1], query_event_id, nonvisit_ids, search_process)
                     else:
                         if len(mult_response) >= 4:
-                            global right_neighbor
                             id = int(mult_response[0])
                             ring_size = int(mult_response[1])
                             right_neighbor_id = (id + 1) % ring_size
@@ -627,24 +641,31 @@ def main():
                                              , search_process)
                     else:
                         print("Error")
-                # rhdrudgh cnrk qnqns
                 elif "leave-dht" in message:
                     receivedMessage = clientSocket.recv(2048).decode()
                     print(receivedMessage)
-                    # test
+
                     if "SUCCESS" in receivedMessage:
-                        print("✅ Leave request accepted by manager.")
+                        print("✅ Leave request accepted...")
+
+                        # 3. reset-id 메시지 전파
+                        if right_neighbor is not None:
+                            reset_msg = f"reset-id {id} {ring_size} {right_neighbor[1]} {right_neighbor[2]}"
+                            peer_socket.sendto(reset_msg.encode(), (right_neighbor[1], right_neighbor[2]))
+                            print(f"📩 Sent reset-id to neighbor: {right_neighbor}")
                     else:
-                        print("❌ Leave request denied by manager.")
+                        print("❌ leave-dht request denied...")
                 elif "dht-rebuilt" in message:
                     receivedMessage = clientSocket.recv(2048).decode()
                     print(receivedMessage)
+
                     if "SUCCESS" in receivedMessage:
-                        print("🆗 DHT rebuild.")
+                        print("✅  DHT rebuild...")
+
                         if id == 0:
                             assign_id()
                     else:
-                        print("❌ DHT fail to rebuild.")
+                        print("❌  DHT rebuild fail...")
                 elif "teardown" in message:
                     receivedMessage = clientSocket.recv(2048).decode()
                     print(receivedMessage)
