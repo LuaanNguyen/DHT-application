@@ -23,6 +23,8 @@ participating_peers = {} # Global dictionary to track peers in the DHT
 serverSocket = None  # Global socket variable
 DHT_set_up = False  # Global bool to track whether DHT is set up or not
 socket_array = []  # List to track peer sockets
+leave_peer = None
+join_peer = None
 
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
@@ -44,8 +46,6 @@ class client_state(Enum):
     INDHT = 3  # A peer that is one of the members of the DHT
 
 # ============== DEREGISTER =============== #
-
-
 def teardown_complete(client_message, client_address):
     # Parse the incoming message to extract the peer name
     command = client_message.split(" ")
@@ -341,6 +341,112 @@ def register_client(client_message, clientAddress):
     # Log current registered peers
     print_all_peers()
 
+# ============== MANAGER COMMAND: leave-dht =============== #
+# 1. check if the peer is in DHT
+# 2. if YES then 'SUCESS' + save 'peer name'
+# 3. After 1, 2 - only 'dht-rebuilt' command allow
+def leave_dht(client_message, client_address):
+    global leave_peer, DHT_set_up
+
+    command = client_message.split(" ")
+    if len(command) != 2:
+        logger.warning("📜  FORMAT: leave-dht <peer-name>")
+        serverSocket.sendto("FAILURE".encode(), client_address)
+        return
+
+    peer_name = command[1]
+
+    if not DHT_set_up:
+        logger.warning("❌  DHT not set up yet.")
+        serverSocket.sendto("FAILURE".encode(), client_address)
+        return
+
+    if peer_name not in client_dictionary:
+        logger.warning(f"❌  Peer {peer_name} not registered.")
+        serverSocket.sendto("FAILURE".encode(), client_address)
+        return
+
+    state = client_dictionary[peer_name]["state"]
+    if state not in [client_state.LEADER, client_state.INDHT]:
+        logger.warning(f"❌  Peer {peer_name} not in DHT.")
+        serverSocket.sendto("FAILURE".encode(), client_address)
+        return
+
+    # Valid leave request
+    leave_peer = peer_name
+    logger.info(f"✅  Leave request accepted from peer: {peer_name}")
+    serverSocket.sendto("SUCCESS".encode(), client_address)
+
+    
+# ============== MANAGER COMMAND: join-dht =============== #
+# 1. check if the peer is FREE
+# 2. if YES then 'SUCESS' + save 'peer name'
+# 3. After 1, 2 - only 'dht-rebuilt' command allow
+# def join_dht(client_message, client_address):
+
+
+
+
+# ============== DISPLAY: dht-rebuilt =============== #
+def display_ring_structure():
+    ring = []
+    for peer, info in client_dictionary.items():
+        if info["state"] in [client_state.LEADER, client_state.INDHT]:
+            ring.append(peer)
+    if ring:
+        ring_str = " → ".join(ring + [ring[0]])
+        logger.info("🤖  Current Ring Structure:")
+        logger.info(f"  {ring_str}")
+
+# ============== MANAGER COMMAND: dht-rebuilt =============== #
+# 1. check if 'peer name' is equal to LEAVE or JOIN
+# 2. if NO then FAIL
+# 3. if YES then PEERS re-setting
+# 4. After 1, 2 - only 'dht-rebuilt' command allow
+# def dht_rebuilt(client_message, client_address):
+def dht_rebuilt(client_message, client_address):
+    global leave_peer, join_peer, client_dictionary
+
+    command = client_message.split(" ")
+    if len(command) != 3:
+        logger.warning("📜  FORMAT: dht-rebuilt <peer-name> <new-leader>")
+        serverSocket.sendto("FAILURE".encode(), client_address)
+        return
+
+    peer_name = command[1]
+    new_leader = command[2]
+
+    if peer_name != leave_peer and peer_name != join_peer:
+        logger.warning(f"❌  Unauthorized dht-rebuilt sender: {peer_name}")
+        serverSocket.sendto("FAILURE".encode(), client_address)
+        return
+
+    if new_leader not in client_dictionary:
+        logger.warning(f"❌  Unknown new leader: {new_leader}")
+        serverSocket.sendto("FAILURE".encode(), client_address)
+        return
+
+    if new_leader == peer_name:
+        logger.warning("❌  Leaving peer cannot be the new leader")
+        serverSocket.sendto("FAILURE".encode(), client_address)
+        return
+
+    # Reset peer states
+    for peer in client_dictionary:
+        if peer == leave_peer:
+            continue
+        if peer == new_leader:
+            client_dictionary[peer]["state"] = client_state.LEADER
+        elif client_dictionary[peer]["state"] != client_state.FREE:
+            client_dictionary[peer]["state"] = client_state.INDHT
+
+    # Reset global state
+    leave_peer = None
+    join_peer = None
+
+    logger.info(f"✅  [ DHT rebuilt ]    New leader: {new_leader}")
+    display_ring_structure()
+    serverSocket.sendto("SUCCESS".encode(), client_address)
 
 # ============== MAIN =============== #
 def main():
@@ -388,6 +494,10 @@ def main():
                 respond_to_query(message, clientAddress)
             elif "register" in message:
                 register_client(message, clientAddress)
+            elif "leave-dht" in message:
+                leave_dht(message, clientAddress)
+            elif "dht-rebuilt" in message:
+                dht_rebuilt(message, clientAddress)
             elif "teardown" in message:
                 teardown_dht(message, clientAddress)
             else:
