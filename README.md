@@ -4,130 +4,157 @@
 
 **No late submission is accepted**
 
-📆 Available: `Sunday 02/26/2025`
+📆 Full project due: `05/02/2025`
 
-📆 Midestone due: `Sunday 03/23/2025`
+## Project Overview 🌟
 
-📆 Full project due: `Friday 04/04/2025`
+This project implements a Distributed Hash Table (DHT) system for storing and querying weather event data from NOAA's storm events database. The system consists of a central DHT Manager and multiple Peer nodes that form a ring topology for distributed data storage and retrieval.
+
+## Filestone Submissions 📑
 
 📌 Documentation: [Documentation](https://docs.google.com/document/d/1zdzy2W98iVG3k-rULQHCNX07EMCQG1knNZorXkv003U/edit?tab=t.0)  
 📌 Design Doc: [CSE434: Socket Project](https://docs.google.com/document/d/1zIXYn8LTUxaovb8iLyP6x7aYPeaWQDtc4o6muHAUQH4/edit?tab=t.0#heading=h.mz71e5s6w1lg)  
 📌 Time-space Diagram: [Time-space Diagram](https://docs.google.com/presentation/d/1ufCHWC4uRkZ89WrBdrQZOXyu7C4mGx7TVxSi8UaxVyE/edit#slide=id.p)  
-📌 Video Demo: [Video](https://youtu.be/R7nA6OKfetA)       
+📌 Video Demo: [Video](https://youtu.be/R7nA6OKfetA)
 
-💽 Storm Event Database: [NOAA's storm events database](https://www.ncdc.noaa.gov/stormevents/)
+## Final Submissions 📑
 
+📌 Design Doc:[CSE434: Socket Project Full](https://docs.google.com/document/d/1zIXYn8LTUxaovb8iLyP6x7aYPeaWQDtc4o6muHAUQH4/edit?tab=t.0)
 
 ## Architecture ⚙️
 
 - Written in `Python`
+- Communication via UDP sockets
+- Ring-based DHT topology
+- Data distribution using consistent hashing
 - Version Control: `git` + `github`
-- Dependecies: check `requirements.txt`
+- Dependencies: check `requirements.txt`
 
 ![Architecture](architecture.png)
+
+### System Components
+
+1. **DHT Manager**: Central coordinator responsible for peer registration, DHT setup, and managing peer state.
+2. **Peers**: Distributed nodes that form the ring, store data, and route queries.
+3. **Data Storage**: Each peer maintains a local hash table for storing weather event records.
+
+💽 Storm Event Database: [NOAA's storm events database](https://www.ncdc.noaa.gov/stormevents/)
 
 ## Environment Setup 💻
 
 Make sure you have [Python](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/) installed on your local machine.
 
-```
+```bash
 cd dht-application
-python -m venv venv # create virtual enviroment
-source venv/bin/activate # mac
-venv\Scripts\activate # window
-pip install -r requirements.txt # install dependecies
-pip list # check if all dependecies are properly installed
+python -m venv venv # create virtual environment
+source venv/bin/activate # mac/linux
+venv\Scripts\activate # windows
+pip install -r requirements.txt # install dependencies
+pip list # check if all dependencies are properly installed
 ```
 
 ## Run the program 🏋️‍♀️
 
 ### DHT Manager (`dht_manager.py`)
 
-```
+```bash
 # python3 dht_manager.py <port>
 python3 dht_manager.py 12345
 ```
 
 ### Peers (`dht_peer.py`)
 
-(Can have multiple instances running)
-
-```
+```bash
 # python3 dht_peer.py <manager_ip> <manager_port>
-
 python3 dht_peer.py localhost 12345
-
 ```
 
-## Milestone Submission 📑
+## Available Commands 🖥️
 
-For the milestone deadline, you are to implement the following commands to the manager: `register`, `setup-dht`,
-and `dht-complete`. This also involves implementation of commands that may be issued among peers associated
-with these commands.
+### DHT Manager Commands
 
-- [x] register
-- [x] setup-dht
-- [x] dht-complete
+The DHT Manager automatically processes commands received from peers.
 
-1. Design document in PDF format (50%). Describe the design of your DHT application pro
+### Peer Commands
 
-- [ ] Include a description of your message format for each command implemented for the miles
-- [ ] Include a time-space diagram for each command implemented to illustrate the order of messages exchanged between communicating entities, as well as the actions taken on the transmission and/or receipt of a message or other event.
-- [ ] Describe your choice of data structures used, implementation considerations, and other design decisions.
-- [ ] Include a snapshot showing commits made in your choice of version control system.
-- [ ] Provide a a link to your video demo and ensure that the link is accessible to our graders. In addition, give
-      a list of timestamps in your video at which each step 3(a)-3(d) is demonstrated.
+Peers can issue the following commands to interact with the DHT:
 
-2. [x] Code and documentation (25%). Submit your well-documented source code implementing the milestone of
-   your DHT application.
+1. `register <peer-name> <IPv4-address> <m-port> <p-port>`
 
-3. Video demo (25%). Upload a video of length at most 7 minutes to YouTube with no splicing or edits, with audio
-   accompaniment. This video must be uploaded and timestamped before the milestone submission deadline.The video demo of your DHT application for the milestone must include:
+   - Registers a peer with the manager
+   - Example: `register peer1 127.0.0.1 8001 8002`
 
-- [ ] Compile your manager and peer programs (if applicable)
-- [ ] Run the freshly compiled programs on at least two distinct end-hosts
-- [ ] Start your manager program. Then start three peer processes that each register with the mananger
-- [ ] Have one peer issue a setup-dht command to build a DHT of size n = 3 using the YYYY = 1950
-      dataset. This should output the number of records stored at each peer in the ring and finish by sending a
-      dht-complete to the manager.
+2. `setup-dht <peer-name> <n> <YYYY>`
 
-- [x] For the end-hosts, consider using general{3|4|5}.asu.edu, the machines on the racks in BYENG 217, or
-installing your application on VMs on a LAN you configure in CloudLab, or using any other end-hosts available
-to you for the demo. (We use AWS EC2)
+   - Initiates DHT construction with n peers using data from year YYYY
+   - Example: `setup-dht peer1 3 1999`
 
-Your video will require at least four (4) windows open: one for the manager, and one for each peer. Ensure
-that the font size in each window is large enough to read!
+3. `dht-complete <peer-name>`
 
-Be sure that the output of your commands are a well-labelled trace of the messages transmitted and
-received between processes so that it is easy to follow what is happening in your DHT application program.
+   - Signals that DHT setup is complete
+   - Example: `dht-complete peer1`
 
-**_Refer to the pdf for the detailed versions_**
+4. `query-dht <peer-name>`
 
-**_Graceful termination of your application is not required at this time._**
+   - Initiates a query to find an event in the DHT
+   - Example: `query-dht peer1`
 
+5. `find-event <event-id>`
 
-## Reproduce Milestone 🎯
+   - Searches for a specific event record
+   - Example: `find-event 40001`
 
-This is step by step on reproducing milestone.
+6. `leave-dht <peer-name>`
 
-### Initialize DHT Manager Program
+   - Allows a peer to leave the DHT
+   - Example: `leave-dht peer2`
 
-In your local computer, run:
-```
+7. `join-dht <peer-name>`
+
+   - Allows a new peer to join an existing DHT
+   - Example: `join-dht peer4`
+
+8. `dht-rebuilt <peer-name> <new-leader>`
+
+   - Signals that the DHT has been rebuilt after a peer joins/leaves
+   - Example: `dht-rebuilt peer1 peer3`
+
+9. `teardown-dht <peer-name>`
+
+   - Initiates the shutdown of the DHT
+   - Example: `teardown-dht peer1`
+
+10. `teardown-complete <peer-name>`
+
+    - Signals that DHT teardown is complete
+    - Example: `teardown-complete peer1`
+
+11. `deregister <peer-name>`
+
+    - Removes a peer from the system
+    - Example: `deregister peer3`
+
+12. `exit`
+    - Exits the peer program
+
+## Step-by-Step Usage Guide 🎯
+
+### 1. Initialize DHT Manager
+
+In your terminal, run:
+
+```bash
 python3 dht_manager.py 12345
 ```
 
-or 
+For distributed deployment on multiple machines (e.g., EC2):
 
-For milestone, connect to your EC2 instance since we need to run the program on 2 distinct end hosts: 
-```
-ssh -i <your_pem_key> <your_EC2_public_IP> # SSH into your EC2 Instance 
+```bash
+ssh -i <your_pem_key> <your_EC2_public_IP> # SSH into your EC2 Instance
 git clone https://github.com/LuaanNguyen/DHT-application.git
 cd DHT-application
-```
 
-If your EC2 distro is debian, you can run these commands to install neccessary depedencies:
-```
+# Install dependencies
 sudo apt install python3
 python3 -m venv venv
 source venv/bin/activate # For Linux/Debian
@@ -135,44 +162,157 @@ pip install -r requirements.txt
 python3 dht_manager.py 12345
 ```
 
-### Initialize Peer Program
+### 2. Initialize Multiple Peer Programs
 
-In your local computer, on 3 different terminal windows, run reach peer with the same port as manager (`12345` in this case):
-```
-python3 dht_peer localhost 12345
+In separate terminal windows, start three peer instances:
+
+```bash
+python3 dht_peer.py localhost 12345
 ```
 
-### Register each peer
+### 3. Register Each Peer
 
-```
-# terminal 1
+In each peer terminal, register with unique identifiers:
+
+```bash
+# Terminal 1
 register peer1 127.0.0.1 8001 8002
 
-# terminal 2
+# Terminal 2
 register peer2 127.0.0.1 8003 8004
 
-# terminal 3
+# Terminal 3
 register peer3 127.0.0.1 8005 8006
+
+# Terminal 4
+register peer4 127.0.0.1 8007 8008
+
+# Terminal 5
+register peer5 127.0.0.1 8009 8010
+
+# Terminal 6
+register peer6 127.0.0.1 8011 8012
 ```
 
-### Set up DHT
+### 4. Set Up the DHT
 
-Peer1 sends `setup-dht` to the manager. The manager then proceeds to check and peer1 is now able to set up the ring by communicating with other peers.
+From the terminal of the peer you want to designate as leader:
 
-```
-# terminal 1
-setup-dht peer1 3 1950
-```
-
-If everything works correctly, you'll see logs in the manager showing the DHT setup process and completion.
-
-### DHT complete
-
-```
-# terminal 1
-dht-complete peer1
+```bash
+# In Terminal 1 (peer1)
+setup-dht peer1 3 1999
 ```
 
-You should see a receipt ("SUCCESS") of a dht-complete indicates that the leader has completed all the steps required to set up the DHT.
+The leader will:
 
-## TO DOS for Final Submmission (TBD)
+1. Coordinate ring formation
+2. Assign IDs to all peers
+3. Read data from the specified year's CSV file
+4. Distribute records across the DHT
+
+### 5. Query the DHT
+
+After setup completes:
+
+```bash
+# In any peer terminal
+query-dht peer1
+
+# When prompted for an event ID
+40001
+```
+
+The system will:
+
+1. Determine which peer should have the record
+2. Route the query to that peer
+3. Return the record if found
+
+### 6. Testing Dynamic Membership (Optional)
+
+To test a peer leaving the DHT:
+
+```bash
+# In Terminal 2 (peer2)
+leave-dht peer2
+
+# In Terminal 1 (peer1) to confirm ring restructuring
+dht-rebuilt peer2 peer1
+```
+
+To test a peer joining the DHT:
+
+```bash
+# In a new Terminal 4
+python3 dht_peer.py localhost 12345
+register peer4 127.0.0.1 8007 8008
+join-dht peer4
+
+# In Terminal 1 (peer1) to confirm ring restructuring
+dht-rebuilt peer4 peer1
+```
+
+### 7. Teardown the DHT
+
+To properly shut down the DHT:
+
+```bash
+# In the leader's terminal (Terminal 1)
+teardown-dht peer1
+
+# After all peers have processed the teardown
+teardown-complete peer1
+```
+
+## Troubleshooting 🔧
+
+### Common Issues
+
+1. **Connection Failures**
+
+   - Ensure the manager is running before starting peers
+   - Check that ports are available and not blocked by firewall
+
+2. **Registration Failures**
+
+   - Verify that peer names are unique
+   - Ensure ports are not already in use
+
+3. **DHT Setup Issues**
+
+   - Confirm all peers are properly registered
+   - Check that CSV data files exist in the project directory
+
+4. **Query Problems**
+   - Ensure the DHT is fully set up before querying
+   - Verify that the event ID exists in the data set
+
+## Project Structure 📁
+
+- `dht_manager.py` - Central coordinator implementation
+- `dht_peer.py` - Peer node implementation
+- `validation_utils.py` - Command validation utilities
+- `details-YYYY.csv` - Storm event data files for various years
+- `requirements.txt` - Project dependencies
+
+## Data Format 📊
+
+The storm event data is stored in CSV files with the following fields:
+
+- `event_id` - Unique identifier for the storm event
+- `state` - US state where the event occurred
+- `year`, `month`, `day` - Date of the event
+- `event_type` - Type of storm (e.g., tornado, flood)
+- `injuries`, `fatalities` - Impact of the event
+- `damage_property` - Estimated property damage
+
+## Authors 👨‍💻👩‍💻
+
+- Luan Nguyen
+- Somesh Harshavardhan Gopi Krishna
+- Sophia Gu
+- Kyongho Gong
+
+Arizona State University
+CSE434: Computer Networks
+Prof. Bharatesh Chakravarthi

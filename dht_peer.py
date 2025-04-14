@@ -21,7 +21,8 @@ import time
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
     level=logging.INFO,
-    format='►  %(asctime)s - %(levelname)s - %(message)s',
+    # ►  %(asctime)s - %(levelname)s - %(message)s
+    format='►  %(message)s',
     handlers=[
         # Log to file dht_peer.log + added 'utf-8' for fixing window error
         logging.FileHandler('dht_peer.log', encoding='utf-8'),
@@ -38,6 +39,10 @@ ring_size = -1
 DHT = []
 DHT_size = -1
 input_file = ""
+initialized = False  # New state flag
+data_received = False  # Flag to track if data has been received
+last_heartbeat_time = 0
+heartbeat_interval = 10  # seconds
 
 # teardown will just erase all the details stored in the client process about the DHT
 def teardown():
@@ -463,6 +468,7 @@ def main():
     print("  ✅ deregister <peer-name>")
     print("  ✅ exit")
     print("✨ ----------------------------------------------------- ✨")
+    
 
     try:
         while True:
@@ -499,17 +505,25 @@ def main():
                         logger.info(f"📩 Received from manager: {received_message}")
                         print(received_message)
                     elif "store" in data_str:
-                        # we can initialize the DHT now
-                        # global DHT_size
-                        global DHT
-                        if DHT_size == -1:
-                            print(mult_response[2:16])
-                            DHT_size = int(mult_response[1])
-                            print("DHT size: " + str(DHT_size))
-                            DHT = [None] * DHT_size
-
-                        curr_record = mult_response[2:16]
-                        forward_record(curr_record)
+                        try:
+                            # we can initialize the DHT now
+                            global DHT, data_received
+                            if DHT_size == -1:
+                                DHT_size = int(mult_response[1])
+                                logger.info(f"📊 Initializing DHT with size: {DHT_size}")
+                                DHT = [None] * DHT_size
+                            
+                            curr_record = mult_response[2:16]
+                            logger.info(f"📥 Received record: event_id={curr_record[0]}, state={curr_record[1]}")
+                            forward_record(curr_record)
+                            
+                            # Mark that we've received data
+                            data_received = True
+                            
+                            # Check initialization status after receiving data
+                            check_initialization_status()
+                        except Exception as e:
+                            logger.error(f"⚠️ Error processing store message: {e}")
                     elif "reset-id" in data_str:
                         parts = data_str.split(" ")
                         if len(parts) >= 5:
@@ -518,15 +532,34 @@ def main():
                             neighbor_ip = parts[3]
                             neighbor_port = int(parts[4])
 
+                            # Update local state properly
                             id = old_id
-                            right_neighbor = ((id + 1) % ring_size, neighbor_ip, int(neighbor_port))
+                            right_neighbor = ((id + 1) % ring_size, neighbor_ip, neighbor_port)
                             print(f"✅ [ reset-id ]  New ID: {id}, New neighbor: {right_neighbor}")
+                            
+                            # Make sure DHT size is maintained if already set
+                            if DHT_size > 0 and len(DHT) > 0:
+                                # Recalculate which records should be stored locally
+                                # This is a simplified approach - ideally you'd redistribute data
+                                new_DHT = [None] * DHT_size
+                                for pos, record in enumerate(DHT):
+                                    if record is not None:
+                                        event_id = int(record[0])
+                                        new_pos = calculate_pos(event_id) 
+                                        new_node = calculate_id(new_pos)
+                                        if new_node == id:  # If this record should still be here
+                                            new_DHT[new_pos] = record
+                                DHT = new_DHT  # Update local DHT
 
+                            # Continue propagating the reset-id message
                             if id != ring_size - 1:
-                                next_id = id + 1
+                                next_id = (id + 1) % ring_size
                                 next_msg = f"reset-id {next_id} {ring_size} {neighbor_ip} {neighbor_port}"
-                                peer_socket.sendto(next_msg.encode(), (neighbor_ip, int(neighbor_port)))
-                                print(f"📩  Sent reset-id to neighbor {next_id}")
+                                try:
+                                    peer_socket.sendto(next_msg.encode(), (neighbor_ip, int(neighbor_port)))
+                                    print(f"📩  Sent reset-id to neighbor {next_id}")
+                                except Exception as e:
+                                    logger.error(f"⚠️ Error forwarding reset-id: {e}")
                     elif "start-query" in data_str:
 
                         query_event_id = int(mult_response[1])
@@ -536,6 +569,41 @@ def main():
                             nonvisit_ids.append(i)
 
                         start_search_process(peer_socket.getpeername()[0], peer_socket.getpeername()[1], query_event_id, nonvisit_ids, search_process)
+                    elif "heartbeat" in data_str:
+                        parts = data_str.split(" ")
+                        if len(parts) >= 3:
+                            sender_id = int(parts[1])
+                            sender_name = parts[2]
+                            logger.info(f"💓 Received heartbeat from peer {sender_name} (ID: {sender_id})")
+                            
+                            # Send heartbeat response
+                            try:
+                                response = f"heartbeat-ack {id} {peer_name}"
+                                peer_socket.sendto(response.encode(), addr)
+                            except Exception as e:
+                                logger.error(f"⚠️ Failed to send heartbeat response: {e}")
+                    elif "heartbeat-ack" in data_str:
+                        parts = data_str.split(" ")
+                        if len(parts) >= 3:
+                            responder_id = int(parts[1])
+                            responder_name = parts[2]
+                            logger.info(f"💓 Received heartbeat acknowledgment from peer {responder_name} (ID: {responder_id})")
+                    elif "redistribute" in data_str:
+                        parts = data_str.split(" ")
+                        
+                        if len(parts) >= 3:
+                            action = parts[1]
+                            affected_peer = parts[2]
+                            logger.info(f"📊 Redistribution triggered: {action} {affected_peer}")
+                        else:
+                            logger.info(f"📊 General redistribution triggered")
+                        
+                        # Only the leader should handle redistribution
+                        if id == 0:  # Leader
+                            logger.info("📊 Leader initiating data redistribution")
+                            
+                            # Recalculate which records belong to which peers after topology change
+                            redistribute_records()
                     else:
                         if len(mult_response) >= 4:
                             # global right_neighbor
@@ -646,16 +714,29 @@ def main():
                     print(receivedMessage)
                     
                     if "SUCCESS" in receivedMessage:
-                        # Wait a moment to ensure any pending messages are processed
-                        time.sleep(0.5)
+                        # Wait for initialization to complete
+                        max_wait = 5  # Maximum wait time in seconds
+                        wait_interval = 0.5  # Check every half second
                         
-                        # Check if we're in a valid state after processing any pending messages
-                        if id == -1 or ring_size == -1 or DHT_size == -1:
-                            logger.warning("⚠️ Cannot query DHT: peer not properly initialized")
-                            print("⚠️ This peer is not properly initialized in the DHT yet")
-                            print("⚠️ Make sure all peers are registered and DHT is set up")
+                        logger.info(f"⏳ Waiting for DHT initialization (max {max_wait}s)...")
+                        
+                        # Wait for initialization or timeout
+                        start_time = time.time()
+                        while not check_initialization_status() and (time.time() - start_time) < max_wait:
+                            time.sleep(wait_interval)
+                            logger.info("⏳ Still waiting for initialization...")
+                        
+                        # Check if we're ready after waiting
+                        if not initialized:
+                            logger.warning("⚠️ Query timeout: Peer not fully initialized")
+                            print("⚠️ This peer is not properly initialized in the DHT.")
+                            print("⚠️ Make sure all peers are registered and DHT is set up.")
+                            print("⚠️ If this persists, try restarting the peer.")
                             continue
-                            
+                        
+                        # Peer is ready, proceed with query
+                        logger.info("✅ Peer ready. Proceeding with query.")
+                        
                         # Prompt for event ID
                         print("\n📝 Enter event ID to search for:")
                         event_id_input = input("Event ID > ")
@@ -711,19 +792,7 @@ def main():
                     else:
                         logger.error("❌ Query failed. Make sure DHT is set up properly.")
                 elif "leave-dht" in message:
-                    receivedMessage = clientSocket.recv(2048).decode()
-                    print(receivedMessage)
-
-                    if "SUCCESS" in receivedMessage:
-                        print("✅ Leave request accepted...")
-
-                        # 3. reset-id 메시지 전파
-                        if right_neighbor is not None:
-                            reset_msg = f"reset-id {id} {ring_size} {right_neighbor[1]} {right_neighbor[2]}"
-                            peer_socket.sendto(reset_msg.encode(), (right_neighbor[1], right_neighbor[2]))
-                            print(f"📩 Sent reset-id to neighbor: {right_neighbor}")
-                    else:
-                        print("❌ leave-dht request denied...")
+                    leave_dht(message, clientSocket, receivedMessage)
                 elif "dht-rebuilt" in message:
                     receivedMessage = clientSocket.recv(2048).decode()
                     print(receivedMessage)
@@ -761,6 +830,134 @@ def main():
             peer_socket.close()
         logger.info("🤖 Peer shutdown complete")
         print("🤖 Now exiting the program...")
+
+
+def leave_dht(message, clientSocket, receivedMessage):
+    global id, ring_size, DHT, DHT_size, input_file, right_neighbor
+    
+    if "SUCCESS" in receivedMessage:
+        print("✅ Leave request accepted...")
+        
+        # After successfully leaving, reset local state
+        old_id = id  # Save for reset-id message
+        old_ring_size = ring_size
+        old_right_neighbor = right_neighbor
+        
+        # Reset all local state variables
+        id = -1
+        ring_size = -1
+        DHT = []
+        DHT_size = -1
+        input_file = ""
+        
+        # Then propagate reset-id with old values
+        if old_right_neighbor is not None:
+            reset_msg = f"reset-id {old_id} {old_ring_size} {old_right_neighbor[1]} {old_right_neighbor[2]}"
+            peer_socket.sendto(reset_msg.encode(), (old_right_neighbor[1], old_right_neighbor[2]))
+            print(f"📩 Sent reset-id to neighbor: {old_right_neighbor}")
+        
+        # Set right_neighbor to None last
+        right_neighbor = None
+    else:
+        print("❌ leave-dht request denied...")
+
+
+# Add new function to check initialization status
+def check_initialization_status():
+    """Check if the peer is fully initialized and update the initialized flag"""
+    global initialized, data_received
+    
+    basic_setup = (id >= 0 and ring_size > 0 and right_neighbor is not None)
+    dht_setup = (DHT_size > 0 and len(DHT) > 0)
+    
+    # Update initialization status
+    initialized = basic_setup and dht_setup and data_received
+    
+    if initialized:
+        logger.info("✅ Peer fully initialized and ready for queries")
+    else:
+        missing = []
+        if id < 0: missing.append("ID not assigned")
+        if ring_size <= 0: missing.append("ring size not set")
+        if right_neighbor is None: missing.append("neighbor not assigned")
+        if DHT_size <= 0 or len(DHT) <= 0: missing.append("DHT not initialized")
+        if not data_received: missing.append("no data received")
+        
+        logger.info(f"⏳ Peer initialization incomplete. Missing: {', '.join(missing)}")
+    
+    return initialized
+
+
+# Add heartbeat function
+def send_heartbeat():
+    """Send a heartbeat to the right neighbor to check if it's alive"""
+    global right_neighbor, last_heartbeat_time
+    
+    current_time = time.time()
+    
+    # Only send heartbeat if we're initialized and it's time
+    if initialized and right_neighbor is not None and (current_time - last_heartbeat_time) >= heartbeat_interval:
+        try:
+            heartbeat_msg = f"heartbeat {id} {peer_name}"
+            peer_socket.sendto(heartbeat_msg.encode(), (right_neighbor[1], int(right_neighbor[2])))
+            logger.info(f"💓 Sent heartbeat to neighbor {right_neighbor[0]}")
+            last_heartbeat_time = current_time
+        except Exception as e:
+            logger.error(f"⚠️ Failed to send heartbeat: {e}")
+
+
+# Add redistributeRecords function
+def redistribute_records():
+    """Redistribute data records after topology changes"""
+    global input_file
+    
+    # Only the leader should do this
+    if id != 0:
+        logger.warning("⚠️ Only the leader can redistribute records")
+        return
+    
+    logger.info(f"📊 Redistributing data from {input_file}")
+    
+    try:
+        # Re-read data file
+        with open(input_file, 'r') as csvfile:
+            csvreader = csv.reader(csvfile)
+            next(csvreader)  # Skip header
+            
+            # Process each record
+            for row in csvreader:
+                # Recalculate where this record should go
+                forward_record(row)
+                
+        logger.info("✅ Data redistribution complete")
+    except Exception as e:
+        logger.error(f"⚠️ Error during data redistribution: {e}")
+
+
+# Add at the top level before the main loop
+def reconnect_to_manager():
+    """Attempt to reconnect to the manager if connection is lost"""
+    global clientSocket, serverName, serverPort
+    
+    try:
+        logger.info(f"🔄 Attempting to reconnect to manager at {serverName}:{serverPort}")
+        
+        # Close old socket if it exists
+        if clientSocket:
+            try:
+                clientSocket.close()
+            except:
+                pass
+        
+        # Create new socket
+        clientSocket = socket(AF_INET, SOCK_DGRAM)
+        clientSocket.connect((serverName, serverPort))
+        
+        logger.info("✅ Successfully reconnected to manager")
+        return True
+    except Exception as e:
+        logger.error(f"⚠️ Failed to reconnect: {e}")
+        return False
 
 
 if __name__ == "__main__":
