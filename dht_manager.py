@@ -13,6 +13,7 @@ from enum import Enum
 import ipaddress
 import logging
 import random
+import os
 
 # Import validation functions from the new module
 from validation_utils import check_register_command, IP_address_valid, check_setupDHT
@@ -500,8 +501,7 @@ def main():
                 dht_complete(message, clientAddress)
             elif "get_neighbor_info" in message:
                 get_neighbor_info(message, clientAddress)
-            elif "query_dht" in message:
-                print("In progress")
+            elif "query-dht" in message:
                 respond_to_query(message, clientAddress)
             elif "register" in message:
                 register_client(message, clientAddress)
