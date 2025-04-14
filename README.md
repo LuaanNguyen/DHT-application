@@ -183,6 +183,15 @@ register peer2 127.0.0.1 8003 8004
 
 # Terminal 3
 register peer3 127.0.0.1 8005 8006
+
+# Terminal 4
+register peer4 127.0.0.1 8007 8008
+
+# Terminal 5
+register peer5 127.0.0.1 8009 8010
+
+# Terminal 6
+register peer6 127.0.0.1 8011 8012
 ```
 
 ### 4. Set Up the DHT

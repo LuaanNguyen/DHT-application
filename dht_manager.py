@@ -26,11 +26,14 @@ DHT_set_up = False  # Global bool to track whether DHT is set up or not
 socket_array = []  # List to track peer sockets
 leave_peer = None
 join_peer = None
+DHT_fully_initialized = False
+initialization_check_count = 0
 
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
     level=logging.INFO,  # Set logging level
-    format='➡️  %(asctime)s - %(levelname)s - %(message)s',  # Set log message format
+    # ➡️  %(asctime)s - %(levelname)s - %(message)s
+    format='►  %(message)s',  # Set log message format 
     handlers=[
         # Log to file dht_manager.log + added 'utf-8' for fixing window error
         logging.FileHandler('dht_manager.log', encoding='utf-8'),
@@ -165,6 +168,7 @@ def deregister_peer(client_message, client_address):
         return False
     
     peer_name = command[1]
+    logger.info(f"Processing deregister request for peer: {peer_name}")
     
     # Check if the peer exists in the client dictionary
     if peer_name not in client_dictionary:
@@ -175,6 +179,7 @@ def deregister_peer(client_message, client_address):
 
     # Retrieve the state of the peer
     peer_state = client_dictionary[peer_name]["state"]
+    logger.info(f"Current state of {peer_name}: {peer_state}")
     
     # If the peer is in a FREE state, deregistration can proceed
     if peer_state == client_state.FREE:
@@ -184,15 +189,18 @@ def deregister_peer(client_message, client_address):
         
         # Remove from client dictionary
         del client_dictionary[peer_name]
+        logger.info(f"Removed {peer_name} from client dictionary")
         
         # Remove from participating_peers if present
         if peer_name in participating_peers:
             del participating_peers[peer_name]
+            logger.info(f"Removed {peer_name} from participating peers")
         
         # Remove from socket_array if present
         for i, (ip, port) in enumerate(socket_array):
             if ip == peer_ip and port == peer_port:
                 socket_array.pop(i)
+                logger.info(f"Removed {peer_name} from socket array at position {i}")
                 break
         
         logger.info(f"✅  Successfully deregistered peer: {peer_name}")
@@ -204,7 +212,7 @@ def deregister_peer(client_message, client_address):
         return True
     else:
         # If the peer is not FREE, deregistration fails
-        logger.warning(f"❌  Cannot deregister peer {peer_name}: not in FREE state")
+        logger.warning(f"❌  Cannot deregister peer {peer_name}: not in FREE state ({peer_state})")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return False
@@ -245,7 +253,7 @@ def respond_to_query(client_message, client_address):
     client_response = client_response + " " + participating_peers[initial_peer]["ip_addr"]
     client_response = client_response + " " + participating_peers[initial_peer]["p_port"]
     serverSocket.sendto(client_response.encode(), client_address)
-    logger.info("Successfully randomly selected a peer to start query process")
+    logger.info(f"Successfully randomly selected a peer to start query process: {initial_peer}")
 
 # ============== HELPER COMMAND: Print registered peers =============== #
 def print_all_peers():
@@ -340,7 +348,7 @@ def setup_DHT(client_message, client_address):
 
 # ============== DHT COMMAND: setup-dht =============== #
 def dht_complete(client_message, client_address):
-    global DHT_set_up
+    global DHT_set_up, DHT_fully_initialized
 
     # Parse command
     command = client_message.split(" ")
@@ -369,8 +377,13 @@ def dht_complete(client_message, client_address):
 
     # Otherwise, mark DHT setup as complete, return success
     logger.info(f"DHT Setup completed by leader {peer_name}")
+    DHT_fully_initialized = True
+    logger.info(f"✅ DHT fully initialized and ready for queries")
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), client_address)
+
+    # Display ring structure
+    display_ring_structure()
 
 
 # ============== DHT COMMAND: register =============== #
@@ -599,11 +612,16 @@ def dht_rebuilt(client_message, client_address):
         # Update the peer's state to FREE
         client_dictionary[peer_name]["state"] = client_state.FREE
         
+        # Comment out or remove this line
+        # redistribute_data(leaving_peer=peer_name)
+        
     elif peer_name == join_peer:
         logger.info(f"🔄  Completing join process for {peer_name}")
         # The peer state was already updated in join_dht
-        # but we need to make sure socket_array and participating_peers are up to date
         
+        # Comment out or remove this line
+        # redistribute_data(joining_peer=peer_name)
+    
     # Update the leader
     for name, info in client_dictionary.items():
         if info["state"] == client_state.LEADER:
@@ -622,6 +640,23 @@ def dht_rebuilt(client_message, client_address):
     display_ring_structure()
     client_response = "SUCCESS"
     serverSocket.sendto(client_response.encode(), client_address)
+
+def update_all_peers_ring_structure():
+    """Notify all peers in the DHT about the updated ring structure."""
+    try:
+        # For each peer in the DHT
+        for i, (ip, port) in enumerate(socket_array):
+            # Get its right neighbor
+            next_i = (i + 1) % len(socket_array)
+            next_ip, next_port = socket_array[next_i]
+            
+            # Send ring update
+            update_msg = f"ring-update {i} {len(socket_array)} {next_ip} {next_port}"
+            peer_addr = (ip, port)
+            logger.info(f"📩 Sending ring update to peer at {peer_addr}: {update_msg}")
+            serverSocket.sendto(update_msg.encode(), peer_addr)
+    except Exception as e:
+        logger.error(f"⚠️ Failed to update peers: {e}")
 
 # ============== MAIN =============== #
 def main():
@@ -655,28 +690,31 @@ def main():
             message = message.decode()
             logger.info(f"Received message from {clientAddress}: {message}")
 
-            # Handle different commands
-            if "register" in message:
-                register_client(message, clientAddress)
-            elif "setup-dht" in message:
-                setup_DHT(message, clientAddress)
-            elif "dht-complete" in message:
-                dht_complete(message, clientAddress)
-            elif "query-dht" in message:
-                respond_to_query(message, clientAddress)
-            elif "leave-dht" in message:
-                leave_dht(message, clientAddress)
-            elif "join-dht" in message:
-                join_dht(message, clientAddress)
-            elif "dht-rebuilt" in message:
-                dht_rebuilt(message, clientAddress)
-            elif "deregister" in message:
+            # Handle different commands - check for exact command patterns
+            command_parts = message.split()
+            command = command_parts[0] if command_parts else ""
+            
+            if command == "deregister":
                 deregister_peer(message, clientAddress)
-            elif "teardown-complete" in message:
+            elif command == "register":
+                register_client(message, clientAddress)
+            elif command == "setup-dht":
+                setup_DHT(message, clientAddress)
+            elif command == "dht-complete":
+                dht_complete(message, clientAddress)
+            elif command == "query-dht":
+                respond_to_query(message, clientAddress)
+            elif command == "leave-dht":
+                leave_dht(message, clientAddress)
+            elif command == "join-dht":
+                join_dht(message, clientAddress)
+            elif command == "dht-rebuilt":
+                dht_rebuilt(message, clientAddress)
+            elif command == "teardown-complete":
                 teardown_complete(message, clientAddress)
-            elif "teardown-dht" in message:
+            elif command == "teardown-dht":
                 teardown_dht(message, clientAddress)
-            elif "get_neighbor_info" in message: # Helper
+            elif command == "get_neighbor_info":  # Helper command
                 get_neighbor_info(message, clientAddress)
             else:
                 # Send error response back to client
@@ -693,3 +731,64 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Add function to check if all peers are initialized
+def check_dht_initialization():
+    """Check if all peers in the DHT are fully initialized"""
+    global DHT_fully_initialized, initialization_check_count
+    
+    if not DHT_set_up or len(participating_peers) == 0:
+        return False
+    
+    initialization_check_count += 1
+    logger.info(f"🔍 Checking DHT initialization status (attempt {initialization_check_count})")
+    
+    # Check if we've already sent data to all peers
+    if initialization_check_count >= 5:  # After 5 checks, assume initialization is complete
+        DHT_fully_initialized = True
+        logger.info("✅ DHT considered fully initialized after multiple checks")
+        return True
+    
+    return DHT_fully_initialized
+
+# Add function to trigger data redistribution
+def redistribute_data(leaving_peer=None, joining_peer=None):
+    """Trigger data redistribution after a peer joins or leaves"""
+    global socket_array, participating_peers
+    
+    if not DHT_set_up or len(socket_array) <= 1:
+        logger.warning("⚠️ Cannot redistribute data: DHT not properly set up")
+        return
+    
+    logger.info("🔄 Initiating data redistribution")
+    
+    # Find leader peer
+    leader_name = None
+    for name, info in client_dictionary.items():
+        if info["state"] == client_state.LEADER:
+            leader_name = name
+            break
+    
+    if not leader_name:
+        logger.warning("⚠️ Cannot redistribute data: No leader found")
+        return
+    
+    # Send redistribution command to leader
+    leader_info = client_dictionary[leader_name]
+    leader_ip = leader_info["ip_addr"]
+    leader_port = int(leader_info["p_port"])
+    leader_addr = (leader_ip, leader_port)
+    
+    # Create appropriate message based on join or leave
+    if leaving_peer:
+        redist_msg = f"redistribute leave {leaving_peer}"
+    elif joining_peer:
+        redist_msg = f"redistribute join {joining_peer}"
+    else:
+        redist_msg = "redistribute"
+    
+    try:
+        logger.info(f"📩 Sending redistribution command to leader at {leader_addr}: {redist_msg}")
+        serverSocket.sendto(redist_msg.encode(), leader_addr)
+    except Exception as e:
+        logger.error(f"⚠️ Failed to send redistribution command: {e}")
