@@ -48,82 +48,163 @@ class client_state(Enum):
 
 # ============== DEREGISTER =============== #
 def teardown_complete(client_message, client_address):
+    global DHT_set_up, socket_array, participating_peers
+    
     # Parse the incoming message to extract the peer name
     command = client_message.split(" ")
     
-    # Check if the peer exists in the client dictionary
-    if not command[1] in client_dictionary:
-        logger.warning(f"Peer {command[1]} not registered")
+    if len(command) != 2:
+        logger.warning("📜  FORMAT: teardown-complete <peer-name>")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
-        return False
+        return
+
+    peer_name = command[1]
+    
+    # Check if the peer exists in the client dictionary
+    if peer_name not in client_dictionary:
+        logger.warning(f"❌  Peer {peer_name} not registered")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return
+
+    # Check if the DHT has been set up
+    if not DHT_set_up:
+        logger.warning(f"❌  DHT has not been set up yet.")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return
 
     # Check if the peer is the leader
-    peer_state = client_dictionary[str(command[1])]["state"]
+    peer_state = client_dictionary[peer_name]["state"]
     if peer_state != client_state.LEADER:
-        logger.warning(f"Peer {command[1]} is not the leader. Cannot initiate teardown.")
+        logger.warning(f"❌  Peer {peer_name} is not the leader. Cannot complete teardown.")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
-    else:
-        # If the peer is the leader, update all peers' state to FREE
-        logger.info(f"teardown-complete successfully received. Setting all peers' state to FREE")
-        for key in client_dictionary:
-            client_dictionary[key]["state"] = client_state.FREE
-        client_response = "SUCCESS"
-        serverSocket.sendto(client_response.encode(), client_address)
+        return
+    
+    # If the peer is the leader, update all peers' state to FREE
+    logger.info(f"✅  Teardown complete received from leader: {peer_name}")
+    
+    # Reset all DHT-related data structures
+    for key in client_dictionary:
+        client_dictionary[key]["state"] = client_state.FREE
+    
+    # Clear the socket array and participating peers
+    socket_array = []
+    participating_peers = {}
+    
+    # Mark DHT as not set up
+    DHT_set_up = False
+    
+    # Log the changes
+    logger.info("🧹  All peers reset to FREE state")
+    logger.info("🧹  DHT structure cleared")
+    print_all_peers()
+    
+    # Send success response
+    client_response = "SUCCESS"
+    serverSocket.sendto(client_response.encode(), client_address)
 
 
 def teardown_dht(client_message, client_address):
-    # Parse the incoming message to extract the peer name
-    command = client_message.split(" ")
-
-    # Check if the peer exists in the client dictionary
-    if not command[1] in client_dictionary:
-        logger.warning(f"Peer {command[1]} not registered")
-        client_response = "FAILURE"
-        serverSocket.sendto(client_response.encode(), client_address)
-        return False
-
-    # Check if the DHT has been set up before attempting teardown
-    if not DHT_set_up:
-        logger.warning(f"DHT has not been set up yet.")
-        client_response = "FAILURE"
-        serverSocket.sendto(client_response.encode(), client_address)
-        return False
-
-    # Check if the peer is the leader
-    peer_state = client_dictionary[str(command[1])]["state"]
-    if peer_state != client_state.LEADER:
-        logger.warning(f"Peer {command[1]} is not the leader. Cannot initiate teardown.")
-        client_response = "FAILURE"
-        serverSocket.sendto(client_response.encode(), client_address)
-    else:
-        # If the peer is the leader, acknowledge the teardown request with SUCCESS
-        client_response = "SUCCESS"
-        serverSocket.sendto(client_response.encode(), client_address)
-
-
-def deregister_peer(client_message, client_address):
+    global DHT_set_up
+    
     # Parse the incoming message to extract the peer name
     command = client_message.split(" ")
     
+    if len(command) != 2:
+        logger.warning("📜  FORMAT: teardown-dht <peer-name>")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return
+
+    peer_name = command[1]
+
     # Check if the peer exists in the client dictionary
-    if not command[1] in client_dictionary:
-        logger.warning(f"Peer {command[1]} not registered")
+    if peer_name not in client_dictionary:
+        logger.warning(f"❌  Peer {peer_name} not registered")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return
+
+    # Check if the DHT has been set up before attempting teardown
+    if not DHT_set_up:
+        logger.warning(f"❌  DHT has not been set up yet.")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return
+
+    # Check if the peer is the leader
+    peer_state = client_dictionary[peer_name]["state"]
+    if peer_state != client_state.LEADER:
+        logger.warning(f"❌  Peer {peer_name} is not the leader. Cannot initiate teardown.")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return
+    
+    # If the peer is the leader, acknowledge the teardown request with SUCCESS
+    logger.info(f"✅  Teardown initiated by leader: {peer_name}")
+    client_response = "SUCCESS"
+    serverSocket.sendto(client_response.encode(), client_address)
+    
+    # Log that we're waiting for teardown-complete
+    logger.info("⏳  Waiting for teardown-complete message...")
+
+
+def deregister_peer(client_message, client_address):
+    global participating_peers, socket_array
+    
+    # Parse the incoming message to extract the peer name
+    command = client_message.split(" ")
+    
+    if len(command) != 2:
+        logger.warning("📜  FORMAT: deregister <peer-name>")
+        client_response = "FAILURE"
+        serverSocket.sendto(client_response.encode(), client_address)
+        return False
+    
+    peer_name = command[1]
+    
+    # Check if the peer exists in the client dictionary
+    if peer_name not in client_dictionary:
+        logger.warning(f"❌  Peer {peer_name} not registered")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return False
 
     # Retrieve the state of the peer
-    peer_state = client_dictionary[str(command[1])]["state"]
+    peer_state = client_dictionary[peer_name]["state"]
     
-    # If the peer is in a FREE state, deregistration is successful
+    # If the peer is in a FREE state, deregistration can proceed
     if peer_state == client_state.FREE:
+        # Get peer info for cleanup
+        peer_ip = client_dictionary[peer_name]["ip_addr"]
+        peer_port = int(client_dictionary[peer_name]["p_port"])
+        
+        # Remove from client dictionary
+        del client_dictionary[peer_name]
+        
+        # Remove from participating_peers if present
+        if peer_name in participating_peers:
+            del participating_peers[peer_name]
+        
+        # Remove from socket_array if present
+        for i, (ip, port) in enumerate(socket_array):
+            if ip == peer_ip and port == peer_port:
+                socket_array.pop(i)
+                break
+        
+        logger.info(f"✅  Successfully deregistered peer: {peer_name}")
         client_response = "SUCCESS"
         serverSocket.sendto(client_response.encode(), client_address)
+        
+        # Display updated peer list
+        print_all_peers()
         return True
     else:
         # If the peer is not FREE, deregistration fails
+        logger.warning(f"❌  Cannot deregister peer {peer_name}: not in FREE state")
         client_response = "FAILURE"
         serverSocket.sendto(client_response.encode(), client_address)
         return False
@@ -575,26 +656,28 @@ def main():
             logger.info(f"Received message from {clientAddress}: {message}")
 
             # Handle different commands
-            if "deregister" in message:
-                deregister_peer(message, clientAddress)
+            if "register" in message:
+                register_client(message, clientAddress)
             elif "setup-dht" in message:
                 setup_DHT(message, clientAddress)
             elif "dht-complete" in message:
                 dht_complete(message, clientAddress)
-            elif "get_neighbor_info" in message:
-                get_neighbor_info(message, clientAddress)
             elif "query-dht" in message:
                 respond_to_query(message, clientAddress)
-            elif "register" in message:
-                register_client(message, clientAddress)
             elif "leave-dht" in message:
                 leave_dht(message, clientAddress)
             elif "join-dht" in message:
                 join_dht(message, clientAddress)
             elif "dht-rebuilt" in message:
                 dht_rebuilt(message, clientAddress)
-            elif "teardown" in message:
+            elif "deregister" in message:
+                deregister_peer(message, clientAddress)
+            elif "teardown-complete" in message:
+                teardown_complete(message, clientAddress)
+            elif "teardown-dht" in message:
                 teardown_dht(message, clientAddress)
+            elif "get_neighbor_info" in message: # Helper
+                get_neighbor_info(message, clientAddress)
             else:
                 # Send error response back to client
                 error_msg = "Unknown command"
