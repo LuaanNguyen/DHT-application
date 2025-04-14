@@ -16,6 +16,7 @@ import logging
 from sympy import *
 import csv
 import random
+import time
 
 # ============== SETTING LOG CONFIGS =============== #
 logging.basicConfig(
@@ -68,28 +69,44 @@ def teardown():
 
 
 def start_search_process(start_ip_addr, start_p_port, event_id, unvisited_ids, id_seq):
-    print("Entered search process...")
-    if start_ip_addr == peer_socket.getpeername[0]:
-        print("Search successfully at the current peer making a query")
-        find_pos = calculate_pos(event_id)
-        find_id = calculate_id(find_pos)
-
-        if find_id == id:
+    logger.info(f"🔍 Starting search process for event {event_id}")
+    
+    # Calculate where this event should be
+    find_pos = calculate_pos(event_id)
+    find_id = calculate_id(find_pos)
+    
+    logger.info(f"Event {event_id} should be at position {find_pos} on node {find_id}")
+    
+    if find_id == id:
+        # Check local DHT
+        if 0 <= find_pos < len(DHT) and DHT[find_pos] is not None:
             search_record = DHT[find_pos]
-            if search_record == None:
-                print("The record was not found at node " + str(id))
-            elif int(search_record[0]) != event_id:
-                print("The record was not found at node " + str(id))
-            else:
-                print("SUCCESSFULLY FOUND THE STORM WITH EVENT_ID: " + str(search_record))
-        else:
-            id_seq.append(id)
-            unvisited_ids.remove(id)
-            find_event(event_id, unvisited_ids, id_seq)
+            if int(search_record[0]) == event_id:
+                print(f"\n✅ SUCCESSFULLY FOUND THE STORM WITH EVENT_ID: {event_id}")
+                print(f"Record: {search_record}")
+                return
+        
+        print(f"\n❌ Event {event_id} not found at node {id}")
     else:
-        print("Passing along the query")
-        start_message = "start-query " + str(event_id)
-        peer_socket.sendto(start_message, (start_ip_addr, start_p_port))
+        # Add current node to search path
+        id_seq.append(id)
+        if id in unvisited_ids:
+            unvisited_ids.remove(id)
+        
+        # Check if right_neighbor is set before forwarding
+        if right_neighbor is not None:
+            # Forward to next node
+            logger.info(f"Forwarding search to neighbor node {right_neighbor}")
+            start_message = f"start-query {event_id}"
+            try:
+                peer_socket.sendto(start_message.encode(), (right_neighbor[1], int(right_neighbor[2])))
+                print(f"Passing query for event {event_id} to next node")
+            except Exception as e:
+                logger.error(f"⚠️ Error forwarding search: {e}")
+        else:
+            # Handle case when right_neighbor isn't set
+            logger.error("⚠️ Cannot forward search: right_neighbor not set")
+            print(f"❌ Cannot continue search: ring not properly initialized")
 
 
 def pass_event_along(event_id, unvisited_ids, id_seq):
@@ -623,26 +640,76 @@ def main():
                             assign_id()
                         else:
                             logger.error(f"⚠️ Invalid neighbor info: {receivedMessage}")
-                elif "query_dht" in message:
-                    # search process will list the order of the nodes that were visited
-
+                elif "query-dht" in message:
                     receivedMessage = clientSocket.recv(2048).decode()
                     logger.info(f"📩 Received from manager: {receivedMessage}")
                     print(receivedMessage)
-                    search_process = []
-                    nonvisit_ids = []
-                    for i in range(ring_size):
-                        nonvisit_ids.append(i)
-                    fields = receivedMessage.split(" ")
+                    
                     if "SUCCESS" in receivedMessage:
-                        print("Successful initialization of query request")
-                        response_p_port = fields[2]
-                        response_ip_addr = fields[1]
-                        queried_event_id = input("Type in the event_id you wish to search for: ")
-                        start_search_process(response_ip_addr, int(response_p_port), int(queried_event_id), nonvisit_ids
-                                             , search_process)
+                        # Wait a moment to ensure any pending messages are processed
+                        time.sleep(0.5)
+                        
+                        # Check if we're in a valid state after processing any pending messages
+                        if id == -1 or ring_size == -1 or DHT_size == -1:
+                            logger.warning("⚠️ Cannot query DHT: peer not properly initialized")
+                            print("⚠️ This peer is not properly initialized in the DHT yet")
+                            print("⚠️ Make sure all peers are registered and DHT is set up")
+                            continue
+                            
+                        # Prompt for event ID
+                        print("\n📝 Enter event ID to search for:")
+                        event_id_input = input("Event ID > ")
+                        try:
+                            event_id = int(event_id_input)
+                            logger.info(f"🔍 Searching for event_id: {event_id}")
+                            
+                            # Check if DHT is initialized
+                            if DHT_size <= 0 or len(DHT) == 0:
+                                logger.error("⚠️ DHT storage not initialized")
+                                print("❌ Cannot search: DHT storage not initialized")
+                                continue
+                                
+                            # Initialize search parameters
+                            nonvisit_ids = list(range(ring_size))
+                            search_process = []
+                            
+                            # Calculate where this event should be
+                            find_pos = calculate_pos(event_id)
+                            find_id = calculate_id(find_pos)
+                            
+                            logger.info(f"Event {event_id} should be at position {find_pos} on node {find_id}")
+                            
+                            if find_id == id:
+                                # Check local DHT
+                                if 0 <= find_pos < len(DHT) and DHT[find_pos] is not None:
+                                    search_record = DHT[find_pos]
+                                    if int(search_record[0]) == event_id:
+                                        print(f"\n✅ SUCCESSFULLY FOUND THE STORM WITH EVENT_ID: {event_id}")
+                                        print(f"Record: {search_record}")
+                                    else:
+                                        print(f"\n❌ Event {event_id} not found (position occupied by event {search_record[0]})")
+                                else:
+                                    print(f"\n❌ Event {event_id} not found in DHT")
+                            else:
+                                # Check if right_neighbor is set
+                                if right_neighbor is None:
+                                    logger.error("⚠️ Right neighbor not set, cannot forward search")
+                                    print("❌ Cannot search: ring neighbors not set up correctly")
+                                else:
+                                    # Forward the search
+                                    start_message = f"start-query {event_id}"
+                                    try:
+                                        logger.info(f"Forwarding search to node {right_neighbor}")
+                                        peer_socket.sendto(start_message.encode(), (right_neighbor[1], int(right_neighbor[2])))
+                                        print(f"Forwarding search for event {event_id} to next node")
+                                    except Exception as e:
+                                        logger.error(f"⚠️ Error forwarding search: {e}")
+                        except ValueError:
+                            logger.error(f"⚠️ Invalid event ID: {event_id_input}. Please enter a number.")
+                        except Exception as e:
+                            logger.error(f"⚠️ Error during search: {e}")
                     else:
-                        print("Error")
+                        logger.error("❌ Query failed. Make sure DHT is set up properly.")
                 elif "leave-dht" in message:
                     receivedMessage = clientSocket.recv(2048).decode()
                     print(receivedMessage)
