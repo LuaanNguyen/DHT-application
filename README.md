@@ -40,36 +40,7 @@ This project implements a Distributed Hash Table (DHT) system for storing and qu
 
 💽 Storm Event Database: [NOAA's storm events database](https://www.ncdc.noaa.gov/stormevents/)
 
-## Environment Setup 💻
-
-Make sure you have [Python](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/) installed on your local machine.
-
-```bash
-cd dht-application
-python -m venv venv # create virtual environment
-source venv/bin/activate # mac/linux
-venv\Scripts\activate # windows
-pip install -r requirements.txt # install dependencies
-pip list # check if all dependencies are properly installed
-```
-
-## Run the program 🏋️‍♀️
-
-### DHT Manager (`dht_manager.py`)
-
-```bash
-# python3 dht_manager.py <port>
-python3 dht_manager.py 12345
-```
-
-### Peers (`dht_peer.py`)
-
-```bash
-# python3 dht_peer.py <manager_ip> <manager_port>
-python3 dht_peer.py localhost 12345
-```
-
-## Available Commands 🖥️
+## Available Commands (To Be Updated) 🖥️
 
 ### DHT Manager Commands
 
@@ -101,60 +72,59 @@ Peers can issue the following commands to interact with the DHT:
    - Initiates a query to find an event in the DHT
    - Example: `query-dht peer1`
 
-## Reproduce Milestone 🎯
-
-6. `leave-dht <peer-name>`
+5. `leave-dht <peer-name>`
 
    - Allows a peer to leave the DHT
    - Example: `leave-dht peer2`
 
-In your local computer, run:
+## Reproduce Demo & Run the Program 🎯
 
-```
-python3 dht_manager.py 12345
-```
+This section provides step-by-step instructions to reproduce the DHT application demo as shown in the video. Follow these steps in order:
 
-or
+## Prerequisites
 
-For milestone, connect to your EC2 instance since we need to run the program on 2 distinct end hosts:
+Make sure you have [Python](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/) installed on your local machine.
 
-```
-ssh -i <your_pem_key> <your_EC2_public_IP> # SSH into your EC2 Instance
+- Access to 4 distinct end-hosts (we use AWS EC2 instances)
+- Python 3.x installed on all machines
+- Git installed on all machines
+
+## Step 1: Setup Environment
+
+On each end-host:
+
+```bash
+# SSH into your EC2 Instance
+ssh -i <your_pem_key> <your_EC2_public_IP>
+
+# Clone the repository
 git clone https://github.com/LuaanNguyen/DHT-application.git
 cd DHT-application
 
-If your EC2 distro is debian, you can run these commands to install neccessary depedencies:
-
+# Setup Python environment
+sudo apt install python3
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-# Install dependencies
+## a.b.c. Compile and Run Programs
 
-> > > > > > > sudo apt install python3
-> > > > > > > python3 -m venv venv
-> > > > > > > source venv/bin/activate # For Linux/Debian
-> > > > > > > pip install -r requirements.txt
-> > > > > > > python3 dht_manager.py 12345
-
-```
-
-### 2. Initialize Multiple Peer Programs
-
-In your local computer, on 3 different terminal windows, run reach peer with the same port as manager (`12345` in this case):
-
-```
-
-# python3 dht_peer localhost 12345
-
-````
-In separate terminal windows, start three peer instances:
+1. Start the DHT Manager on one end-host:
 
 ```bash
-python3 dht_peer.py localhost 12345
-````
+python3 dht_manager.py 12345
+```
 
-### 3. Register Each Peer
+2. On each of the 6 end-hosts, start a peer process:
 
-In each peer terminal, register with unique identifiers:
+```bash
+python3 dht_peer.py 127.0.0.1 12345
+```
+
+## c. Register Peers
+
+On each peer terminal, register with the manager:
 
 ```bash
 # Terminal 1
@@ -176,119 +146,95 @@ register peer5 127.0.0.1 8009 8010
 register peer6 127.0.0.1 8011 8012
 ```
 
-### 4. Set Up the DHT
+## d. Setup DHT
 
-From the terminal of the peer you want to designate as leader:
+Select one peer (e.g., peer1) to initiate DHT setup:
 
 ```bash
-# In Terminal 1 (peer1)
-setup-dht peer1 3 1999
-setup-dht peer1 5 1996 # for video demo
-
+setup-dht peer1 5 1996
 ```
 
-The leader will:
+## e. Query DHT
 
-1. Coordinate ring formation
-2. Assign IDs to all peers
-3. Read data from the specified year's CSV file
-4. Distribute records across the DHT
-
-### 5. Query the DHT
-
-After setup completes:
+On any peer terminal, issue queries with the following event IDs:
 
 ```bash
-# In any peer terminal
 query-dht peer1
-
-# When prompted for an event ID
-40001
+# When prompted, enter these event IDs one by one:
+5536849
+2402920
+5539287
+55770111
 ```
 
-The system will:
+## f. Test Peer Leaving
 
-1. Determine which peer should have the record
-2. Route the query to that peer
-3. Return the record if found
-
-### 6. Testing Dynamic Membership (Optional)
-
-To test a peer leaving the DHT:
+1. Select one peer in the DHT to leave:
 
 ```bash
-# In Terminal 2 (peer2)
 leave-dht peer2
-
-# In Terminal 1 (peer1) to confirm ring restructuring
-dht-rebuilt peer2 peer1
 ```
 
-To test a peer joining the DHT:
+2. Try querying from the peer that left:
 
 ```bash
-# In a new Terminal 4
-python3 dht_peer.py localhost 12345
-register peer4 127.0.0.1 8007 8008
-join-dht peer4
-
-# In Terminal 1 (peer1) to confirm ring restructuring
-dht-rebuilt peer4 peer1
+query-dht peer2
+# Enter any event ID (should fail as peer has left)
+5536849
+2402920
+5539287
+55770111
 ```
 
-### 7. Teardown the DHT
+## g. Test Peer Joining
 
-To properly shut down the DHT:
+1. Select one of the remaining peers outside the DHT to join:
 
 ```bash
-# In the leader's terminal (Terminal 1)
+join-dht peer5
+```
+
+Might need to do peer restructuring (optional)
+
+```bash
+dht-rebuilt peer5 peer1
+```
+
+2. Issue a query from the remaining peer:
+
+```bash
+query-dht peer5
+
+# Enter any event ID
+5536849
+2402920
+5539287
+55770111
+```
+
+## h. Teardown DHT
+
+1. Have the leader issue teardown command:
+
+```bash
 teardown-dht peer1
+```
 
-# After all peers have processed the teardown
+2. Wait for all peers to process teardown:
+
+```bash
 teardown-complete peer1
 ```
 
-## Troubleshooting 🔧
+## i. Graceful Termination
 
-### Common Issues
+1. All peers should automatically de-register and exit
+2. Manually terminate the manager process:
 
-1. **Connection Failures**
-
-   - Ensure the manager is running before starting peers
-   - Check that ports are available and not blocked by firewall
-
-2. **Registration Failures**
-
-   - Verify that peer names are unique
-   - Ensure ports are not already in use
-
-3. **DHT Setup Issues**
-
-   - Confirm all peers are properly registered
-   - Check that CSV data files exist in the project directory
-
-4. **Query Problems**
-   - Ensure the DHT is fully set up before querying
-   - Verify that the event ID exists in the data set
-
-## Project Structure 📁
-
-- `dht_manager.py` - Central coordinator implementation
-- `dht_peer.py` - Peer node implementation
-- `validation_utils.py` - Command validation utilities
-- `details-YYYY.csv` - Storm event data files for various years
-- `requirements.txt` - Project dependencies
-
-## Data Format 📊
-
-The storm event data is stored in CSV files with the following fields:
-
-- `event_id` - Unique identifier for the storm event
-- `state` - US state where the event occurred
-- `year`, `month`, `day` - Date of the event
-- `event_type` - Type of storm (e.g., tornado, flood)
-- `injuries`, `fatalities` - Impact of the event
-- `damage_property` - Estimated property damage
+```bash
+# On the manager's terminal
+Ctrl+C
+```
 
 ## Authors 👨‍💻👩‍💻
 
