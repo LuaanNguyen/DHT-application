@@ -1,0 +1,5 @@
+event_id,state,year,month_name,event_type,cz_type,cz_name,injuries_direct,injuries_indirect,deaths_direct,deaths_indirect,damage_property,damage_crops,tor_f_scale
+5536849,NEW YORK,1996,May,Thunderstorm Wind,C,RICHMOND,15,5,8,6,4.00K,27.00K,EF2
+2402920,CALIFORNIA,1996,July,Flash Flood,Z,NEW YORK CITY,16,14,4,7,16.00K,14.00K,EF5
+5539287,TEXAS,1996,February,Hurricane (Typhoon),C,RICHMOND,5,20,4,8,4.00K,2.00K,EF5
+55770112,NEW JERSEY,1996,December,Ice Storm,Z,UNION COUNTY,3,24,1,2,3.00k,2.00k,EF3
