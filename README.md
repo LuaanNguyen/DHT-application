@@ -95,14 +95,20 @@ On each end-host:
 
 ```bash
 # SSH into your EC2 Instance
-ssh -i <your_pem_key> <your_EC2_public_IP>
+ssh -i <your_pem_key> ubuntu@<your_EC2_public_IP>
+chmod 400 ./.ssh/<your_generated_key>.pem # allow ssh permission
 
-# Clone the repository
+
+# Setup Python environment
+sudo apt update
+sudo apt install -y python3 python3-pip git nano vim
+
+# Clone the repository (Need PAT token genrated from Github)
 git clone https://github.com/LuaanNguyen/DHT-application.git
 cd DHT-application
 
-# Setup Python environment
-sudo apt install python3
+# Installations
+sudo apt install python3-venv
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -120,6 +126,8 @@ python3 dht_manager.py 12345
 
 ```bash
 python3 dht_peer.py 127.0.0.1 12345
+# or for remote peer to connect to local IP
+python3 dht_peer.py 192.168.0.27 12345
 ```
 
 ## c. Register Peers
@@ -129,21 +137,33 @@ On each peer terminal, register with the manager:
 ```bash
 # Terminal 1
 register peer1 127.0.0.1 8001 8002
+# or
+register peer1 192.168.0.27 8001 8002
 
 # Terminal 2
 register peer2 127.0.0.1 8003 8004
+#or
+register peer2 192.168.0.27 8003 8004
 
 # Terminal 3
 register peer3 127.0.0.1 8005 8006
+#or
+register peer3 192.168.0.27 8005 8006
 
 # Terminal 4
 register peer4 127.0.0.1 8007 8008
+#or
+register peer4 192.168.0.27 8007 8008
 
 # Terminal 5
 register peer5 127.0.0.1 8009 8010
+#or
+register peer5 192.168.0.27 8009 8010
 
 # Terminal 6
 register peer6 127.0.0.1 8011 8012
+#or
+register peer6 192.168.0.27 8011 8012
 ```
 
 ## d. Setup DHT

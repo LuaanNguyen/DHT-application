@@ -13,7 +13,6 @@ from socket import *
 import sys
 import select
 import logging
-from sympy import *
 import csv
 import random
 import time
@@ -300,6 +299,21 @@ def calculate_pos(event_id):
     global DHT_size
     return event_id % DHT_size
 
+
+def isprime(n):
+    """Check if a number is prime."""
+    if n <= 1:
+        return False
+    if n <= 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
 
 # The DHT has to be the closest prime number greater than 2 * entries in CSV file
 def set_DHT_size(line_count):
