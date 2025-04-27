@@ -13,13 +13,15 @@ This project implements a Distributed Hash Table (DHT) system for storing and qu
 ## Filestone Submissions 📑
 
 📌 Documentation: [Documentation](https://docs.google.com/document/d/1zdzy2W98iVG3k-rULQHCNX07EMCQG1knNZorXkv003U/edit?tab=t.0)  
-📌 Design Doc: [CSE434: Socket Project](https://docs.google.com/document/d/1zIXYn8LTUxaovb8iLyP6x7aYPeaWQDtc4o6muHAUQH4/edit?tab=t.0#heading=h.mz71e5s6w1lg)  
+📌 Design Doc: [CSE434: Socket Project MileStone](https://docs.google.com/document/d/1zIXYn8LTUxaovb8iLyP6x7aYPeaWQDtc4o6muHAUQH4/edit?tab=t.0#heading=h.mz71e5s6w1lg)  
 📌 Time-space Diagram: [Time-space Diagram](https://docs.google.com/presentation/d/1ufCHWC4uRkZ89WrBdrQZOXyu7C4mGx7TVxSi8UaxVyE/edit#slide=id.p)  
-📌 Video Demo: [Video](https://youtu.be/R7nA6OKfetA)
+📌 Video Demo: [YouTube](https://youtu.be/R7nA6OKfetA)
 
 ## Final Submissions 📑
 
-📌 Design Doc:[CSE434: Socket Project Full](https://docs.google.com/document/d/1zIXYn8LTUxaovb8iLyP6x7aYPeaWQDtc4o6muHAUQH4/edit?tab=t.0)
+📌 Design Doc + Documentation: [CSE434: Socket Project Full](https://docs.google.com/document/d/1zIXYn8LTUxaovb8iLyP6x7aYPeaWQDtc4o6muHAUQH4/edit?tab=t.0#heading=h.mz71e5s6w1lg)  
+📌 Video Demo: [YouTube](https://youtu.be/S33Fj8oY_DY)
+📌 Github Commits: [Drive](https://drive.google.com/drive/folders/1nBXxDEpthWZ75lvFwhI2Rk8nTgeHF7kl)
 
 ## Architecture ⚙️
 
@@ -32,50 +34,7 @@ This project implements a Distributed Hash Table (DHT) system for storing and qu
 
 ![Architecture](architecture.png)
 
-### System Components
-
-1. **DHT Manager**: Central coordinator responsible for peer registration, DHT setup, and managing peer state.
-2. **Peers**: Distributed nodes that form the ring, store data, and route queries.
-3. **Data Storage**: Each peer maintains a local hash table for storing weather event records.
-
 💽 Storm Event Database: [NOAA's storm events database](https://www.ncdc.noaa.gov/stormevents/)
-
-## Available Commands (To Be Updated) 🖥️
-
-### DHT Manager Commands
-
-The DHT Manager automatically processes commands received from peers.
-
-### Peer Commands
-
-Peers can issue the following commands to interact with the DHT:
-
-2. [x] Code and documentation (25%). Submit your well-documented source code implementing the milestone of
-       your DHT application.
-
-   - Registers a peer with the manager
-   - Example: `register peer1 127.0.0.1 8001 8002`
-
-3. `setup-dht <peer-name> <n> <YYYY>`
-
-- [x] For the end-hosts, consider using general{3|4|5}.asu.edu, the machines on the racks in BYENG 217, or
-      installing your application on VMs on a LAN you configure in CloudLab, or using any other end-hosts available
-      to you for the demo. (We use AWS EC2)
-
-3. `dht-complete <peer-name>`
-
-   - Signals that DHT setup is complete
-   - Example: `dht-complete peer1`
-
-4. `query-dht <peer-name>`
-
-   - Initiates a query to find an event in the DHT
-   - Example: `query-dht peer1`
-
-5. `leave-dht <peer-name>`
-
-   - Allows a peer to leave the DHT
-   - Example: `leave-dht peer2`
 
 ## Reproduce Demo & Run the Program 🎯
 
