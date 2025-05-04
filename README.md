@@ -1,11 +1,5 @@
 # CSE434 Socket Programming Project: DHT Application
 
-**Submit the project in a zip file named `Group<group_number>.zip**
-
-**No late submission is accepted**
-
-📆 Full project due: `05/02/2025`
-
 ## Project Overview 🌟
 
 This project implements a Distributed Hash Table (DHT) system for storing and querying weather event data from NOAA's storm events database. The system consists of a central DHT Manager and multiple Peer nodes that form a ring topology for distributed data storage and retrieval.
